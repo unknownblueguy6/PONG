@@ -3,19 +3,18 @@
 // #include <SDL_image.h>
 
 //#elseif LINUX
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL.h>
+#include <SDL_image.h>
 //#endif
 
 #include <string.h>
 
 class particle{
-	unsigned m; //mass
 	unsigned vx; //velocity along x-axis
 	unsigned vy; //velocity along y-axis
 	unsigned x; //x coordinate
 	unsigned y; //y coordinate
-}
+};
 const unsigned SCREEN_WIDTH = 640;
 const unsigned SCREEN_HEIGHT = 480;
 
@@ -83,7 +82,7 @@ int main(int argc, char* argv[]){
 		SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
 		SDL_RenderClear( gRenderer );
 
-		SDL_Rect fillRect = { x, y, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 };
+		SDL_Rect fillRect = { x, y, SCREEN_WIDTH / 30, SCREEN_HEIGHT / 5};
 		SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
 		SDL_RenderFillRect( gRenderer, &fillRect );
 
