@@ -15,6 +15,7 @@ class particle{
 	unsigned x; //x coordinate
 	unsigned y; //y coordinate
 };
+
 const unsigned SCREEN_WIDTH = 640;
 const unsigned SCREEN_HEIGHT = 480;
 
