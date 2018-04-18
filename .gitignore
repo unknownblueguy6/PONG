@@ -1,0 +1,14 @@
+LICENSE.jpeg.txt
+LICENSE.png.txt
+LICENSE.tiff.txt
+LICENSE.webp.txt
+LICENSE.zlib.txt
+Makefile
+SDL2.dll
+SDL2_image.dll
+libjpeg-9.dll
+libpng16-16.dll
+libtiff-5.dll
+libwebp-7.dll
+sdl2-config
+zlib1.dll
