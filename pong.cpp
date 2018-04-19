@@ -8,8 +8,9 @@
 #endif
 
 #include <string.h>
+#inlcude <"timer.h">
 
-class particle{
+class Particle{
 	unsigned vx; //velocity along x-axis
 	unsigned vy; //velocity along y-axis
 	unsigned x; //x coordinate
@@ -54,7 +55,8 @@ int main(int argc, char* argv[]){
 
 	SDL_Event e;
 
-	bool UP = false, DOWN = false, RIGHT = false, LEFT= false;
+	LTimer capTimer;
+
 	int x = 10, y = 40;
 
 	while(!quit){
@@ -88,6 +90,11 @@ int main(int argc, char* argv[]){
 		SDL_RenderFillRect( gRenderer, &fillRect );
 
 		SDL_RenderPresent( gRenderer );
+
+		int frameTicks = capTimer.getTicks();
+		if( frameTicks < SCREEN_TICK_PER_FRAME ){
+			SDL_Delay( SCREEN_TICK_PER_FRAME - frameTicks );
+		}
 	}
 
 	close();
