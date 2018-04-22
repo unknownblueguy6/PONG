@@ -1,14 +1,12 @@
 #ifdef _WIN32 
 #include <SDL.h>
-#include <SDL_image.h>
 
 #else
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 #endif
 
 #include <string.h>
-#inlcude <"timer.h">
+#include "timer.h"
 
 class Particle{
 	unsigned vx; //velocity along x-axis
@@ -32,17 +30,13 @@ void init(){
 	gWindow = SDL_CreateWindow("P O N G", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
 	SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-	int imgFlags = IMG_INIT_PNG;
-	IMG_Init(imgFlags);
 }
 
 void close(){
 	SDL_DestroyRenderer(gRenderer);
 	SDL_DestroyWindow(gWindow);
 	gWindow = 0;
-	gRenderer = 0;
-
-	IMG_Quit();
+	gRenderer = 0;z`
 	SDL_Quit();
 }
 
