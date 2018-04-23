@@ -12,3 +12,5 @@ libtiff-5.dll
 libwebp-7.dll
 sdl2-config
 zlib1.dll
+pong
+particle.cpp
