@@ -2,10 +2,18 @@
 
 const unsigned SCREEN_WIDTH = 640;
 const unsigned SCREEN_HEIGHT = 480;
+
 enum axes
 {
 	X,
 	Y
+};
+
+enum corners{
+	TL, //top left corner
+	TR, //top right corner
+	BL, //bottom left
+	BR //bottom right
 };
 
 class Particle
@@ -14,6 +22,7 @@ class Particle
 		void move();
 		void changeVel(bool choice, int v);
 		void reverse(bool choice);
+		int getCorner(bool choice, int choice);
 
 		int vx; //velocity along x-axis
 		int vy; //velocity along y-axis
@@ -46,6 +55,8 @@ void Particle :: reverse(bool choice){
 	}
 }
 
+
+
 Particle p1, p2, ball;
 
 void newGame(){
@@ -54,16 +65,15 @@ void newGame(){
 	ball = {5, 10, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 20, 20};
 }
 
-void collision(Particle &a, Particle b = {0, 0, 0, 0, 0 ,0}){
-	if (!b.w){
+void collision(Particle &a){
 		if (a.x <= 0 || a.x >= SCREEN_WIDTH - a.w){
 			a.reverse(X);
 		}
 		if (a.y <= 0 || a.y >= SCREEN_HEIGHT - a.h){
 			a.reverse(Y);
 		}
-	}
-	else{
+}
 
-	}
+void collision(Particle &a, Particle b){
+	if(a.x > )
 }
