@@ -1,6 +1,6 @@
 #pragma once
 
-const int SCREEN_FPS = 30;
+const int SCREEN_FPS = 60;
 const int SCREEN_TICK_PER_FRAME = 1000 / SCREEN_FPS;
 
 class LTimer

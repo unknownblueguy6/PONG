@@ -17,8 +17,8 @@ class Particle
 
 		int vx; //velocity along x-axis
 		int vy; //velocity along y-axis
-		unsigned x;
-		unsigned y;
+		int x;
+		int y;
 		unsigned w;
 		unsigned h; 
 };
@@ -51,7 +51,7 @@ Particle p1, p2, ball;
 void newGame(){
 	p1 = {0, 10, 10, (SCREEN_HEIGHT/2 - SCREEN_HEIGHT/5), SCREEN_WIDTH/30, SCREEN_HEIGHT/5};
 	p2 = {0, 10, SCREEN_WIDTH - 10 - SCREEN_WIDTH/30, SCREEN_HEIGHT/2 - SCREEN_HEIGHT/5, SCREEN_WIDTH/30, SCREEN_HEIGHT/5};
-	ball = {10, 20, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 20, 20};
+	ball = {5, 10, SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 20, 20};
 }
 
 void collision(Particle &a, Particle b = {0, 0, 0, 0, 0 ,0}){

@@ -62,18 +62,30 @@ int main(int argc, char* argv[]){
 		if(keyStates[SDL_SCANCODE_UP]){
 			p2.changeVel(Y, -10);
 			p2.move();
+			if(p2.y < 0){
+				p2.y = 0;
+			}
 		}
 		if(keyStates[SDL_SCANCODE_DOWN]){
 			p2.changeVel(Y, 10);
 			p2.move();
+			if (p2.y > SCREEN_HEIGHT - p2.h){
+				p2.y = SCREEN_HEIGHT - p2.h;
+			}
 		}
 		if(keyStates[SDL_SCANCODE_W]){
 			p1.changeVel(Y, -10);
 			p1.move();
+			if(p1.y < 0){
+				p1.y = 0;
+			}
 		}
-		if(keyStates[SDL_SCANCODE_S]){
+		if(keyStates[SDL_SCANCODE_S] && p1.y < SCREEN_HEIGHT - p1.h){
 			p1.changeVel(Y, 10);
 			p1.move();
+			if (p1.y > SCREEN_HEIGHT - p2.h){
+				p1.y = SCREEN_HEIGHT - p2.h;
+			}
 		}
 		
 		collision(ball);
