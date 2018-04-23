@@ -7,51 +7,7 @@
 
 #include <string.h>
 #include "timer.h"
-
-enum Axes
-{
-	X,
-	Y
-};
-
-class Particle
-{
-	public:
-		void move();
-		void changeVel(bool choice, int v);
-		unsigned getPos(bool choice);
-		
-		int vx; //velocity along x-axis
-		int vy; //velocity along y-axis
-		unsigned x; //x coordinate
-		unsigned y; //y coordinate
-};
-
-void Particle :: move(){
-	x += vx;
-	y += vy;
-}
-
-void Particle :: changeVel(bool choice, int v){
-	if (!choice){
-		vx = v;
-	}
-	else{
-		vy = v;
-	}
-}
-
-unsigned Particle :: getPos(bool choice){
-	if (!choice){
-		return x;
-	}
-	else{
-		return y;
-	}
-}
-
-const unsigned SCREEN_WIDTH = 640;
-const unsigned SCREEN_HEIGHT = 480;
+#include "game.h"
 
 SDL_Window* gWindow = 0;
 
@@ -86,7 +42,8 @@ int main(int argc, char* argv[]){
 
 	LTimer capTimer;
 
-	Particle p1 = {0,0, 20, 30}, p2 = {0, 0, 50, 30};
+	newGame();
+
 
 
 	while(!quit){
@@ -118,17 +75,22 @@ int main(int argc, char* argv[]){
 			p1.changeVel(Y, 10);
 			p1.move();
 		}
-
+		
+		collision(ball);
+		ball.move();
+		SDL_Rect p1Rect = {p1.x, p1.y, p1.w, p1.h}, p2Rect = {p2.x, p2.y, p2.w, p2.h}, ballRect = {ball.x, ball.y, ball.w, ball.h};
+		
 		SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
-		SDL_RenderClear( gRenderer );
+		SDL_RenderClear(gRenderer);
 
-		SDL_Rect fillRect = { p1.x, p1.y, SCREEN_WIDTH / 30, SCREEN_HEIGHT / 5};
-		SDL_Rect part = {p2.getPos(X), p2.getPos(Y), SCREEN_WIDTH / 30, SCREEN_HEIGHT / 5};
+		
+		
 		SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
-		SDL_RenderFillRect( gRenderer, &fillRect );
-		SDL_RenderFillRect(gRenderer, &part);
+		SDL_RenderFillRect( gRenderer,&p1Rect);
+		SDL_RenderFillRect(gRenderer, &p2Rect);
+		SDL_RenderFillRect(gRenderer, &ballRect);
 
-		SDL_RenderPresent( gRenderer );
+		SDL_RenderPresent(gRenderer);
 
 		int frameTicks = capTimer.getTicks();
 		if( frameTicks < SCREEN_TICK_PER_FRAME ){
