@@ -89,6 +89,8 @@ int main(int argc, char* argv[]){
 		}
 		
 		collision(ball);
+		collision(ball, p1);
+		collision(ball, p2);
 		ball.move();
 		SDL_Rect p1Rect = {p1.x, p1.y, p1.w, p1.h}, p2Rect = {p2.x, p2.y, p2.w, p2.h}, ballRect = {ball.x, ball.y, ball.w, ball.h};
 		

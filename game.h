@@ -22,7 +22,7 @@ class Particle
 		void move();
 		void changeVel(bool choice, int v);
 		void reverse(bool choice);
-		int getCorner(bool choice, int choice);
+		int getCorner(bool choice1, int choice2);
 
 		int vx; //velocity along x-axis
 		int vy; //velocity along y-axis
@@ -38,7 +38,7 @@ void Particle :: move(){
 }
 
 void Particle :: changeVel(bool choice, int v){
-	if (!choice){
+	if (choice == X){
 		vx = v;
 	}
 	else{
@@ -52,6 +52,37 @@ void Particle :: reverse(bool choice){
 	}
 	else{
 		vy *= -1;
+	}
+}
+
+int Particle :: getCorner(bool choice1, int choice2){
+	if(choice1 == X){
+		if(choice2 == TL){
+			return x;
+		}
+		if(choice2 == TR){
+			return x+w;
+		}
+		if(choice2 == BL){
+			return x;
+		}
+		if(choice2 == BR){
+			return x+w;
+		}
+	}
+	else{
+		if(choice2 == TL){
+			return y;
+		}
+		if(choice2 == TR){
+			return y;
+		}
+		if(choice2 == BL){
+			return y+h;
+		}
+		if(choice2 == BR){
+			return y+h;
+		}
 	}
 }
 
@@ -75,5 +106,16 @@ void collision(Particle &a){
 }
 
 void collision(Particle &a, Particle b){
-	if(a.x > )
+	if(a.x > b.x && a.x < b.getCorner(X, BR) && a.y > b.y && a.y < b.getCorner(Y, BR)){
+		a.reverse(X);
+	}
+	if(a.getCorner(X, TR) > b.x && a.getCorner(X, TR) < b.getCorner(X, BR) && a.getCorner(Y, TR) > b.y && a.getCorner(Y, TR) < b.getCorner(Y, BR)){
+		a.reverse(X);
+	}
+	if(a.getCorner(X, BL) > b.x && a.getCorner(X, BL) < b.getCorner(X, BR) && a.getCorner(Y, BL) > b.y && a.getCorner(Y, BL) < b.getCorner(Y, BR)){
+		a.reverse(X);
+	}
+	if(a.getCorner(X, BR) > b.x && a.getCorner(X, BR) < b.getCorner(X, BR) && a.getCorner(Y, BR) > b.y && a.getCorner(Y, BR) < b.getCorner(Y, BR)){
+		a.reverse(X);
+	}
 }
