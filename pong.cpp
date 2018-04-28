@@ -60,49 +60,58 @@ int main(int argc, char* argv[]){
 		const Uint8* keyStates = SDL_GetKeyboardState( NULL );
 
 		if(keyStates[SDL_SCANCODE_UP]){
-			p2.changeVel(Y, -10);
-			p2.move();
-			if(p2.y < 0){
-				p2.y = 0;
+			PLAYERTWO.changeVel(Y, -PLAYER_TWO_VEL_Y);
+			PLAYERTWO.move();
+			if(PLAYERTWO.y < 0){
+				PLAYERTWO.y = 0;
 			}
+			collision(BALL, PLAYERTWO);
+			PLAYERTWO.changeVel(Y, 0);
 		}
 		if(keyStates[SDL_SCANCODE_DOWN]){
-			p2.changeVel(Y, 10);
-			p2.move();
-			if (p2.y > SCREEN_HEIGHT - p2.h){
-				p2.y = SCREEN_HEIGHT - p2.h;
+			PLAYERTWO.changeVel(Y, PLAYER_TWO_VEL_Y);
+			PLAYERTWO.move();
+			if (PLAYERTWO.y > SCREEN_HEIGHT - PLAYERTWO.h){
+				PLAYERTWO.y = SCREEN_HEIGHT - PLAYERTWO.h;
 			}
+			collision(BALL, PLAYERTWO);
+			PLAYERTWO.changeVel(Y, 0);
 		}
 		if(keyStates[SDL_SCANCODE_W]){
-			p1.changeVel(Y, -10);
-			p1.move();
-			if(p1.y < 0){
-				p1.y = 0;
+			PLAYERONE.changeVel(Y, -PLAYER_ONE_VEL_Y);
+			PLAYERONE.move();
+			if(PLAYERONE.y < 0){
+				PLAYERONE.y = 0;
 			}
+			collision(BALL, PLAYERONE);
+			PLAYERONE.changeVel(Y, 0);
 		}
-		if(keyStates[SDL_SCANCODE_S] && p1.y < SCREEN_HEIGHT - p1.h){
-			p1.changeVel(Y, 10);
-			p1.move();
-			if (p1.y > SCREEN_HEIGHT - p2.h){
-				p1.y = SCREEN_HEIGHT - p2.h;
+		if(keyStates[SDL_SCANCODE_S] && PLAYERONE.y < SCREEN_HEIGHT - PLAYERONE.h){
+			PLAYERONE.changeVel(Y, PLAYER_ONE_VEL_Y);
+			PLAYERONE.move();
+			if (PLAYERONE.y > SCREEN_HEIGHT - PLAYERTWO.h){
+				PLAYERONE.y = SCREEN_HEIGHT - PLAYERTWO.h;
 			}
+			collision(BALL, PLAYERONE);
+			PLAYERONE.changeVel(Y, 0);
 		}
 		
-		collision(ball);
-		collision(ball, p1);
-		collision(ball, p2);
-		ball.move();
-		SDL_Rect p1Rect = {p1.x, p1.y, p1.w, p1.h}, p2Rect = {p2.x, p2.y, p2.w, p2.h}, ballRect = {ball.x, ball.y, ball.w, ball.h};
+		collision(BALL);
+		collision(BALL, PLAYERONE);
+		collision(BALL, PLAYERTWO);
+		reset(BALL);
+		BALL.move();
+		SDL_Rect PLAYERONERect = {PLAYERONE.x, PLAYERONE.y, PLAYERONE.w, PLAYERONE.h}; 
+		SDL_Rect PLAYERTWORect = {PLAYERTWO.x, PLAYERTWO.y, PLAYERTWO.w, PLAYERTWO.h}; 
+		SDL_Rect BALLRect = {BALL.x, BALL.y, BALL.w, BALL.h};
 		
 		SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
 		SDL_RenderClear(gRenderer);
 
-		
-		
 		SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );		
-		SDL_RenderFillRect( gRenderer,&p1Rect);
-		SDL_RenderFillRect(gRenderer, &p2Rect);
-		SDL_RenderFillRect(gRenderer, &ballRect);
+		SDL_RenderFillRect( gRenderer,&PLAYERONERect);
+		SDL_RenderFillRect(gRenderer, &PLAYERTWORect);
+		SDL_RenderFillRect(gRenderer, &BALLRect);
 
 		SDL_RenderPresent(gRenderer);
 
