@@ -17,42 +17,6 @@ int main(int argc, char* argv[]){
 
 		const Uint8* keyStates = SDL_GetKeyboardState( NULL );
 
-		// if(keyStates[SDL_SCANCODE_UP]){
-		// 	PLAYERTWO.changeVel(Y, -PLAYER_TWO_VEL_Y);
-		// 	PLAYERTWO.move();
-		// 	if(PLAYERTWO.y < 0){
-		// 		PLAYERTWO.y = 0;
-		// 	}
-		// 	collision(BALL, PLAYERTWO);
-		// 	PLAYERTWO.changeVel(Y, 0);
-		// }
-		// if(keyStates[SDL_SCANCODE_DOWN]){
-		// 	PLAYERTWO.changeVel(Y, PLAYER_TWO_VEL_Y);
-		// 	PLAYERTWO.move();
-		// 	if (PLAYERTWO.y > SCREEN_HEIGHT - PLAYERTWO.h){
-		// 		PLAYERTWO.y = SCREEN_HEIGHT - PLAYERTWO.h;
-		// 	}
-		// 	collision(BALL, PLAYERTWO);
-		// 	PLAYERTWO.changeVel(Y, 0);
-		// }
-		// if(keyStates[SDL_SCANCODE_W]){
-		// 	PLAYERONE.changeVel(Y, -PLAYER_ONE_VEL_Y);
-		// 	PLAYERONE.move();
-		// 	if(PLAYERONE.y < 0){
-		// 		PLAYERONE.y = 0;
-		// 	}
-		// 	collision(BALL, PLAYERONE);
-		// 	PLAYERONE.changeVel(Y, 0);
-		// }
-		// if(keyStates[SDL_SCANCODE_S] && PLAYERONE.y < SCREEN_HEIGHT - PLAYERONE.h){
-		// 	PLAYERONE.changeVel(Y, PLAYER_ONE_VEL_Y);
-		// 	PLAYERONE.move();
-		// 	if (PLAYERONE.y > SCREEN_HEIGHT - PLAYERTWO.h){
-		// 		PLAYERONE.y = SCREEN_HEIGHT - PLAYERTWO.h;
-		// 	}
-		// 	collision(BALL, PLAYERONE);
-		// 	PLAYERONE.changeVel(Y, 0);
-		// }
 
 		PLAYERONE.move();
 		PLAYERTWO.move();
