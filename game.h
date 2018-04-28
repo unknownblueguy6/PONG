@@ -1,8 +1,8 @@
 #pragma once
+#include "gui.h"
 
-
-const unsigned SCREEN_WIDTH = 640;
-const unsigned SCREEN_HEIGHT = 480;
+const int SCREEN_FPS = 60;
+const int SCREEN_TICK_PER_FRAME = 1000 / SCREEN_FPS;
 
 //Change base attributes here.
 const int PLAYER_ONE_VEL_X = 0;
@@ -26,7 +26,58 @@ const unsigned BALL_HEIGHT = 20;
 const int BALL_POS_X = SCREEN_WIDTH/2 - BALL_WIDTH/2;
 const int BALL_POS_Y = SCREEN_HEIGHT/2 - BALL_HEIGHT; 
 
+//*******************************************************************************************//
+class FPS_Timer
+{
+    public:
+		//Initializes variables
+		FPS_Timer();
 
+		//The various clock actions
+		void start();
+		void capFPS();
+
+		//Gets the timer's time
+		Uint32 getTicks();
+
+    private:
+		//The clock time when the timer started
+		Uint32 mStartTicks;
+};
+
+FPS_Timer::FPS_Timer()
+{
+    //Initialize the variables
+    mStartTicks = 0;
+}
+
+void FPS_Timer::start()
+{
+    //Get the current clock time
+    mStartTicks = SDL_GetTicks();
+}
+
+void FPS_Timer :: capFPS(){
+	int frameTicks = getTicks();
+	if( frameTicks < SCREEN_TICK_PER_FRAME ){
+		SDL_Delay( SCREEN_TICK_PER_FRAME - frameTicks );
+	}
+}
+
+Uint32 FPS_Timer::getTicks()
+{
+	//The actual timer time
+	Uint32 time = 0;
+
+    time = SDL_GetTicks() - mStartTicks;
+
+    return time;
+}
+
+//*******************************************************************************************//
+
+
+//*******************************************************************************************//
 enum axes
 {
 	X,
@@ -45,9 +96,13 @@ class Particle
 {
 	public:
 		void move();
-		void changeVel(bool choice, int v);
-		void reverse(bool choice);
-		int getCorner(bool choice1, int choice2);
+		void move(int);
+		void changeVel(bool, int);
+		void reverse(bool);
+		void renderToScreen();
+		
+		int getCorner(bool, int);
+		int whichPlayer();
 
 		int vx; //velocity along x-axis
 		int vy; //velocity along y-axis
@@ -57,10 +112,51 @@ class Particle
 		unsigned h;
 };
 
+/////////////////////////////////////////
+Particle PLAYERONE, PLAYERTWO, BALL;
+/////////////////////////////////////////
+
 void Particle :: move(){
-	x += vx;
-	y += vy;
+	if(whichPlayer() == -1){
+		x += vx;
+		y += vy;
+	}
+
+
+	else if(whichPlayer() == 1){
+		if(keyStates[SDL_SCANCODE_W]){
+			changeVel(Y, -PLAYER_ONE_VEL_Y);
+			x += vx;
+			y += vy;
+			if(y < 0) y = 0;
+		}
+		if(keyStates[SDL_SCANCODE_S] && PLAYERONE.y < SCREEN_HEIGHT - PLAYERONE.h){
+			changeVel(Y, PLAYER_ONE_VEL_Y);
+			x += vx;
+			y += vy;
+			if (y > SCREEN_HEIGHT - PLAYERTWO.h) y = SCREEN_HEIGHT - PLAYERTWO.h;
+		}
+		changeVel(Y, 0);
+	}
+
+
+	else if(whichPlayer() == 2){
+		if(keyStates[SDL_SCANCODE_UP]){
+			changeVel(Y, -PLAYER_TWO_VEL_Y);
+			x += vx;
+			y += vy;
+			if(y < 0) y = 0;
+		}
+		if(keyStates[SDL_SCANCODE_DOWN]){
+			changeVel(Y, PLAYER_TWO_VEL_Y);
+			x += vx;
+			y += vy;
+			if (y > SCREEN_HEIGHT - h) y = SCREEN_HEIGHT - h;
+		}
+		changeVel(Y, 0);
+	}
 }
+
 
 void Particle :: changeVel(bool choice, int v){
 	if (choice == X){
@@ -111,8 +207,28 @@ int Particle :: getCorner(bool choice1, int choice2){
 	}
 }
 
+int Particle :: whichPlayer(){
+	if (x == PLAYER_ONE_POS_X && h == PLAYER_ONE_HEIGHT) return 1;
+	if (x == PLAYER_TWO_POS_X && h == PLAYER_TWO_HEIGHT) return 2;
+	return -1;
+}
 
-Particle PLAYERONE, PLAYERTWO, BALL;
+void Particle :: renderToScreen(){
+	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+	SDL_Rect particleRect = {x, y, w, h};
+	SDL_RenderFillRect( gRenderer,&particleRect);
+}
+
+//*******************************************************************************************//
+
+//GAME FUNCTIONS
+
+void newGame();
+void collision(Particle&);
+void collision(Particle&, Particle);
+int getCollisionPoint(bool, int, int, int, int, int);
+void reset();
+bool outOfBounds(Particle);
 
 void newGame(){
 	PLAYERONE = {PLAYER_ONE_VEL_X, PLAYER_ONE_VEL_Y, PLAYER_ONE_POS_X, PLAYER_ONE_POS_Y, PLAYER_ONE_WIDTH, PLAYER_ONE_HEIGHT};
@@ -154,6 +270,7 @@ void collision(Particle &ball, Particle player){
 			//add special here
 		}
 		ball.reverse(X);
+		//return true;
 	}
 	if(ball.getCorner(X, TR) > player.getCorner(X, TL) && ball.getCorner(X, TR) < player.getCorner(X, BR) && ball.getCorner(Y, TR) > player.getCorner(Y, TL) && ball.getCorner(Y, TR) < player.getCorner(Y, BR)){
 		if(ball.y - ball.vy < player.getCorner(Y, BL)){
@@ -171,6 +288,7 @@ void collision(Particle &ball, Particle player){
 			//add special here
 		}
 		ball.reverse(X);
+		//return true;
 	}
 	if(ball.getCorner(X, BL) > player.getCorner(X, TL) && ball.getCorner(X, BL) < player.getCorner(X, BR) && ball.getCorner(Y, BL) > player.getCorner(Y, TL) && ball.getCorner(Y, BL) < player.getCorner(Y, BR)){
 		if(ball.y - ball.vy > player.getCorner(Y, TR)){
@@ -188,6 +306,7 @@ void collision(Particle &ball, Particle player){
 			//add special here
 		}
 		ball.reverse(X);
+		//return true;
 	}
 	if(ball.getCorner(X, BR) > player.getCorner(X, TL) && ball.getCorner(X, BR) < player.getCorner(X, BR) && ball.getCorner(Y, BR) > player.getCorner(Y, TL) && ball.getCorner(Y, BR) < player.getCorner(Y, BR)){
 		if(ball.y - ball.vy > player.getCorner(Y, TL)){
@@ -205,14 +324,30 @@ void collision(Particle &ball, Particle player){
 			//add special here
 		}
 		ball.reverse(X);
+		//return true;
 	}
+	//return false;
 }
 
-void reset(Particle &ball){
-	if (ball.x + ball.w <= 0 || ball.x >= SCREEN_WIDTH){
-		ball.x = BALL_POS_X;
-		ball.y = BALL_POS_Y;
-		ball.vx = BALL_VEL_X;
-		ball.vy = BALL_VEL_Y;
-	}
+void reset(){
+
+		BALL.x = BALL_POS_X;
+		BALL.y = BALL_POS_Y;
+		BALL.vx = BALL_VEL_X;
+		BALL.vy = BALL_VEL_Y;
+
+		PLAYERONE.x = PLAYER_ONE_POS_X;
+		PLAYERONE.y = PLAYER_ONE_POS_Y;
+		PLAYERONE.vx = PLAYER_ONE_VEL_X;
+		PLAYERONE.vy = PLAYER_ONE_VEL_Y;
+
+		PLAYERTWO.x = PLAYER_TWO_POS_X;
+		PLAYERTWO.y = PLAYER_TWO_POS_Y;
+		PLAYERTWO.vx = PLAYER_TWO_VEL_X;
+		PLAYERTWO.vy = PLAYER_TWO_VEL_Y;
+
+}
+
+bool outOfBounds(Particle ball){
+	return (ball.x + ball.w <= 0 || ball.x >= SCREEN_WIDTH);
 }
