@@ -21,22 +21,24 @@ int main(int argc, char* argv[]){
 		PLAYERONE.move();
 		PLAYERTWO.move();
 		
-		collision(BALL);
-		collision(BALL, PLAYERONE);
-		collision(BALL, PLAYERTWO);
+		BALL.move();
 
-		if (outOfBounds(BALL)){
+		if(BALL.collisionWithWall()){
+			BALL.reboundFromWall();
+		}
+		
+		if(BALL.collisionWith(PLAYERONE)){
+			BALL.reboundFrom(PLAYERONE);
+		}
+		else if(BALL.collisionWith(PLAYERTWO)){
+			BALL.reboundFrom(PLAYERTWO);
+		}
+
+		if (BALL.outOfBounds()){
 			reset();
 		}
-		BALL.move();
 		
-		clearScreen();
-
-		PLAYERONE.renderToScreen();
-		PLAYERTWO.renderToScreen();
-		BALL.renderToScreen();
-
-		render();
+		renderAll();
 
 		capTimer.capFPS();
 	}

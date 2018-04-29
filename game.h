@@ -91,17 +91,30 @@ enum corners{
 	BR //bottom right
 };
 
+enum collision_type{
+	TLBR, //top left corner of ball and bottom right corner of player
+	TRBL, //top right corner of ball and bottom left corner of player
+	BLTR, //bottom left corner of ball and top right corner of player
+	BRTL //bottom right corner of ball and top left corner of player
+};
+
 
 class Particle
 {
 	public:
 		void move();
-		void move(int);
 		void changeVel(bool, int);
 		void reverse(bool);
 		void renderToScreen();
+		void reboundFromWall();
+		void reboundFrom(Particle);
+
+		bool collisionWith(Particle);
+		bool collisionWithWall();
+		bool outOfBounds();
 		
 		int getCorner(bool, int);
+		int getCollisionPoint(bool, int, int, int, int, int);
 		int whichPlayer();
 
 		int vx; //velocity along x-axis
@@ -110,6 +123,7 @@ class Particle
 		int y;
 		unsigned w;
 		unsigned h;
+		unsigned collisionType;
 };
 
 /////////////////////////////////////////
@@ -176,6 +190,125 @@ void Particle :: reverse(bool choice){
 	}
 }
 
+void Particle :: renderToScreen(){
+	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+	SDL_Rect particleRect = {x, y, w, h};
+	SDL_RenderFillRect( gRenderer,&particleRect);
+}
+
+void Particle :: reboundFromWall(){
+	if (y <= 0){
+		x = getCollisionPoint(X, getCorner(X, TL), getCorner(Y, TL), vx, vy, 0);
+		y = 0;
+		reverse(Y);
+	}
+	else if(y >= SCREEN_HEIGHT - h){
+		x = getCollisionPoint(X, getCorner(X, BR), getCorner(Y, BR), vx, vy, SCREEN_HEIGHT) - w;
+		y = SCREEN_HEIGHT -h;
+		reverse(Y);
+	}
+}
+
+void Particle :: reboundFrom(Particle player){
+	if (collisionType == TLBR){
+		if(y - vy < player.getCorner(Y, BR)){
+			y = getCollisionPoint(Y, getCorner(X, TL), getCorner(Y, TL), vx, vy, player.getCorner(X, BR));
+			x = player.getCorner(X, BR);
+		}
+		else if(y - vy > player.getCorner(Y, BR)){
+			x = getCollisionPoint(X, getCorner(X, TL), getCorner(Y, TL), vx, vy, player.getCorner(Y, BR));
+			y = player.getCorner(Y, BR);
+			changeVel(Y, -(vy - player.vy));
+		}
+		else{
+			x = player.getCorner(X, BR);
+			y = player.getCorner(Y, BR);
+			//add special here
+		}
+		reverse(X);
+	}
+	else if (collisionType == TRBL){
+		if(y - vy < player.getCorner(Y, BL)){
+			y = getCollisionPoint(Y, getCorner(X, TR), getCorner(Y, TR), vx, vy, player.getCorner(X, BL));
+			x = player.getCorner(X, BL) - w;
+		}
+		else if(y - vy > player.getCorner(Y, BL)){
+			x = getCollisionPoint(X, getCorner(X, TR), getCorner(Y, TR), vx, vy, player.getCorner(Y, BL)) - w;
+			y = player.getCorner(Y, BL);
+			changeVel(Y, -(vy - player.vy));
+		}
+		else{
+			x = player.getCorner(X, BL)-w;
+			y = player.getCorner(Y, BL);
+			//add special here
+		}
+		reverse(X);		
+	}
+	else if (collisionType == BLTR){
+		if(y - vy > player.getCorner(Y, TR)){
+			y = getCollisionPoint(Y, getCorner(X, TR), getCorner(Y, TR), vx, vy, player.getCorner(X, TR)) - h;
+			x = player.getCorner(X, TR);
+		}
+		else if(y - vy < player.getCorner(Y, TR)){
+			x = getCollisionPoint(X, getCorner(X, TR), getCorner(Y, TR), vx, vy, player.getCorner(Y, TR));
+			y = player.getCorner(Y, TR) - h;
+			changeVel(Y, -(vy - player.vy));
+		}
+		else{
+			x = player.getCorner(X, TR);
+			y = player.getCorner(Y, TR) - h;
+			//add special here
+		}
+		reverse(X);		
+	}
+	else if (collisionType == BRTL){
+		if(y - vy > player.getCorner(Y, TL)){
+			y = getCollisionPoint(Y, getCorner(X, TR), getCorner(Y, TR), vx, vy, player.getCorner(X, TL)) - h;
+			x = player.getCorner(X, TL) - w;
+		}
+		else if(y - vy < player.getCorner(Y, TL)){
+			x = getCollisionPoint(X, getCorner(X, TR), getCorner(Y, TR), vx, vy, player.getCorner(Y, TL)) - w;
+			y = player.getCorner(Y, TL) - h;
+			changeVel(Y, -(vy - player.vy));
+		}
+		else{
+			x = player.getCorner(X, TL) - w;
+			y = player.getCorner(Y, TL) - h;
+			//add special here
+		}
+		reverse(X);
+	} 
+}
+
+bool Particle :: collisionWith(Particle player){
+	if (getCorner(X, TL) > player.getCorner(X, TL) && getCorner(X, TL) < player.getCorner(X, BR) && getCorner(Y, TL) > player.getCorner(Y, TL) && getCorner(Y, TL) < player.getCorner(Y, BR)){
+		collisionType = TLBR;
+		return true;
+	} 
+	if (getCorner(X, TR) > player.getCorner(X, TL) && getCorner(X, TR) < player.getCorner(X, BR) && getCorner(Y, TR) > player.getCorner(Y, TL) && getCorner(Y, TR) < player.getCorner(Y, BR)){
+		collisionType = TRBL;
+		return true;	
+	}
+	if (getCorner(X, BL) > player.getCorner(X, TL) && getCorner(X, BL) < player.getCorner(X, BR) && getCorner(Y, BL) > player.getCorner(Y, TL) && getCorner(Y, BL) < player.getCorner(Y, BR)){
+		collisionType = BLTR;
+		return true;
+	}
+	if (getCorner(X, BR) > player.getCorner(X, TL) && getCorner(X, BR) < player.getCorner(X, BR) && getCorner(Y, BR) > player.getCorner(Y, TL) && getCorner(Y, BR) < player.getCorner(Y, BR)){
+		collisionType = BRTL;
+		return true;
+	}
+	collisionType = -1;
+	return false;
+}
+
+bool Particle :: collisionWithWall(){
+	return (y <= 0 || y >= SCREEN_HEIGHT - h);
+}
+
+bool Particle :: outOfBounds(){
+	return (x + w <= 0 || x >= SCREEN_WIDTH);
+}
+
 int Particle :: getCorner(bool choice1, int choice2){
 	if(choice1 == X){
 		if(choice2 == TL){
@@ -207,42 +340,7 @@ int Particle :: getCorner(bool choice1, int choice2){
 	}
 }
 
-int Particle :: whichPlayer(){
-	if (x == PLAYER_ONE_POS_X && h == PLAYER_ONE_HEIGHT) return 1;
-	if (x == PLAYER_TWO_POS_X && h == PLAYER_TWO_HEIGHT) return 2;
-	return -1;
-}
-
-void Particle :: renderToScreen(){
-	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
-	SDL_Rect particleRect = {x, y, w, h};
-	SDL_RenderFillRect( gRenderer,&particleRect);
-}
-
-//*******************************************************************************************//
-
-//GAME FUNCTIONS
-
-void newGame();
-void collision(Particle&);
-void collision(Particle&, Particle);
-int getCollisionPoint(bool, int, int, int, int, int);
-void reset();
-bool outOfBounds(Particle);
-
-void newGame(){
-	PLAYERONE = {PLAYER_ONE_VEL_X, PLAYER_ONE_VEL_Y, PLAYER_ONE_POS_X, PLAYER_ONE_POS_Y, PLAYER_ONE_WIDTH, PLAYER_ONE_HEIGHT};
-	PLAYERTWO = {PLAYER_TWO_VEL_X, PLAYER_TWO_VEL_Y, PLAYER_TWO_POS_X, PLAYER_TWO_POS_Y, PLAYER_TWO_WIDTH, PLAYER_TWO_HEIGHT};
-	BALL = {BALL_VEL_X, BALL_VEL_Y, BALL_POS_X, BALL_POS_Y, BALL_WIDTH, BALL_HEIGHT};
-}
-
-void collision(Particle &a){
-		if (a.y <= 0 || a.y >= SCREEN_HEIGHT - a.h){
-			a.reverse(Y);
-		}
-}
-
-int getCollisionPoint(bool choice, int x1, int y1, int vx, int vy, int corner){
+int Particle :: getCollisionPoint(bool choice, int x1, int y1, int vx, int vy, int corner){
 	float m = (float)vy/vx;
 	if(choice == X){
 		return x1 + (corner-y1)/m;
@@ -252,102 +350,39 @@ int getCollisionPoint(bool choice, int x1, int y1, int vx, int vy, int corner){
 	}
 }
 
-void collision(Particle &ball, Particle player){
-	
-	if(ball.getCorner(X, TL) > player.getCorner(X, TL) && ball.getCorner(X, TL) < player.getCorner(X, BR) && ball.getCorner(Y, TL) > player.getCorner(Y, TL) && ball.getCorner(Y, TL) < player.getCorner(Y, BR)){
-		if(ball.y - ball.vy < player.getCorner(Y, BR)){
-			ball.y = getCollisionPoint(Y, ball.getCorner(X, TL), ball.getCorner(Y, TL), ball.vx, ball.vy, player.getCorner(X, BR));
-			ball.x = player.getCorner(X, BR);
-		}
-		else if(ball.y - ball.vy > player.getCorner(Y, BR)){
-			ball.x = getCollisionPoint(X, ball.getCorner(X, TL), ball.getCorner(Y, TL), ball.vx, ball.vy, player.getCorner(Y, BR));
-			ball.y = player.getCorner(Y, BR);
-			ball.changeVel(Y, -(ball.vy - player.vy));
-		}
-		else{
-			ball.x = player.getCorner(X, BR);
-			ball.y = player.getCorner(Y, BR);
-			//add special here
-		}
-		ball.reverse(X);
-		//return true;
-	}
-	if(ball.getCorner(X, TR) > player.getCorner(X, TL) && ball.getCorner(X, TR) < player.getCorner(X, BR) && ball.getCorner(Y, TR) > player.getCorner(Y, TL) && ball.getCorner(Y, TR) < player.getCorner(Y, BR)){
-		if(ball.y - ball.vy < player.getCorner(Y, BL)){
-			ball.y = getCollisionPoint(Y, ball.getCorner(X, TR), ball.getCorner(Y, TR), ball.vx, ball.vy, player.getCorner(X, BL));
-			ball.x = player.getCorner(X, BL) - ball.w;
-		}
-		else if(ball.y - ball.vy > player.getCorner(Y, BL)){
-			ball.x = getCollisionPoint(X, ball.getCorner(X, TR), ball.getCorner(Y, TR), ball.vx, ball.vy, player.getCorner(Y, BL)) - ball.w;
-			ball.y = player.getCorner(Y, BL);
-			ball.changeVel(Y, -(ball.vy - player.vy));
-		}
-		else{
-			ball.x = player.getCorner(X, BL)-ball.w;
-			ball.y = player.getCorner(Y, BL);
-			//add special here
-		}
-		ball.reverse(X);
-		//return true;
-	}
-	if(ball.getCorner(X, BL) > player.getCorner(X, TL) && ball.getCorner(X, BL) < player.getCorner(X, BR) && ball.getCorner(Y, BL) > player.getCorner(Y, TL) && ball.getCorner(Y, BL) < player.getCorner(Y, BR)){
-		if(ball.y - ball.vy > player.getCorner(Y, TR)){
-			ball.y = getCollisionPoint(Y, ball.getCorner(X, TR), ball.getCorner(Y, TR), ball.vx, ball.vy, player.getCorner(X, TR)) - ball.h;
-			ball.x = player.getCorner(X, TR);
-		}
-		else if(ball.y - ball.vy < player.getCorner(Y, TR)){
-			ball.x = getCollisionPoint(X, ball.getCorner(X, TR), ball.getCorner(Y, TR), ball.vx, ball.vy, player.getCorner(Y, TR));
-			ball.y = player.getCorner(Y, TR) - ball.h;
-			ball.changeVel(Y, -(ball.vy - player.vy));
-		}
-		else{
-			ball.x = player.getCorner(X, TR);
-			ball.y = player.getCorner(Y, TR) - ball.h;
-			//add special here
-		}
-		ball.reverse(X);
-		//return true;
-	}
-	if(ball.getCorner(X, BR) > player.getCorner(X, TL) && ball.getCorner(X, BR) < player.getCorner(X, BR) && ball.getCorner(Y, BR) > player.getCorner(Y, TL) && ball.getCorner(Y, BR) < player.getCorner(Y, BR)){
-		if(ball.y - ball.vy > player.getCorner(Y, TL)){
-			ball.y = getCollisionPoint(Y, ball.getCorner(X, TR), ball.getCorner(Y, TR), ball.vx, ball.vy, player.getCorner(X, TL)) - ball.h;
-			ball.x = player.getCorner(X, TL) - ball.w;
-		}
-		else if(ball.y - ball.vy < player.getCorner(Y, TL)){
-			ball.x = getCollisionPoint(X, ball.getCorner(X, TR), ball.getCorner(Y, TR), ball.vx, ball.vy, player.getCorner(Y, TL)) - ball.w;
-			ball.y = player.getCorner(Y, TL) - ball.h;
-			ball.changeVel(Y, -(ball.vy - player.vy));
-		}
-		else{
-			ball.x = player.getCorner(X, TL) - ball.w;
-			ball.y = player.getCorner(Y, TL) - ball.h;
-			//add special here
-		}
-		ball.reverse(X);
-		//return true;
-	}
-	//return false;
+int Particle :: whichPlayer(){
+	if (x == PLAYER_ONE_POS_X && h == PLAYER_ONE_HEIGHT) return 1;
+	if (x == PLAYER_TWO_POS_X && h == PLAYER_TWO_HEIGHT) return 2;
+	return -1;
+}
+
+//*******************************************************************************************//
+
+//GAME FUNCTIONS*****************************************************************************//
+
+void newGame();
+void reset();
+
+void render();
+
+void newGame(){
+	PLAYERONE = {PLAYER_ONE_VEL_X, PLAYER_ONE_VEL_Y, PLAYER_ONE_POS_X, PLAYER_ONE_POS_Y, PLAYER_ONE_WIDTH, PLAYER_ONE_HEIGHT, 0};
+	PLAYERTWO = {PLAYER_TWO_VEL_X, PLAYER_TWO_VEL_Y, PLAYER_TWO_POS_X, PLAYER_TWO_POS_Y, PLAYER_TWO_WIDTH, PLAYER_TWO_HEIGHT, 0};
+	BALL = {BALL_VEL_X, BALL_VEL_Y, BALL_POS_X, BALL_POS_Y, BALL_WIDTH, BALL_HEIGHT, 0};
 }
 
 void reset(){
+	newGame();
+} 
 
-		BALL.x = BALL_POS_X;
-		BALL.y = BALL_POS_Y;
-		BALL.vx = BALL_VEL_X;
-		BALL.vy = BALL_VEL_Y;
+void renderAll(){
+		clearScreen();
 
-		PLAYERONE.x = PLAYER_ONE_POS_X;
-		PLAYERONE.y = PLAYER_ONE_POS_Y;
-		PLAYERONE.vx = PLAYER_ONE_VEL_X;
-		PLAYERONE.vy = PLAYER_ONE_VEL_Y;
+		PLAYERONE.renderToScreen();
+		PLAYERTWO.renderToScreen();
+		BALL.renderToScreen();
 
-		PLAYERTWO.x = PLAYER_TWO_POS_X;
-		PLAYERTWO.y = PLAYER_TWO_POS_Y;
-		PLAYERTWO.vx = PLAYER_TWO_VEL_X;
-		PLAYERTWO.vy = PLAYER_TWO_VEL_Y;
-
+		render();
 }
 
-bool outOfBounds(Particle ball){
-	return (ball.x + ball.w <= 0 || ball.x >= SCREEN_WIDTH);
-}
+//*******************************************************************************************//
