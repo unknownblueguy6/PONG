@@ -35,7 +35,9 @@ int main(int argc, char* argv[]){
 		}
 
 		if (BALL.outOfBounds()){
-			reset();
+			PLAYERONE.reset();
+			PLAYERTWO.reset();
+			BALL.reset();
 		}
 		
 		renderAll();
