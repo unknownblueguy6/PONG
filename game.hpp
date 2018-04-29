@@ -1,5 +1,5 @@
 #pragma once
-#include "gui.h"
+#include "gui.hpp"
 
 const int SCREEN_FPS = 60;
 const int SCREEN_TICK_PER_FRAME = 1000 / SCREEN_FPS;
