@@ -1,5 +1,6 @@
 #pragma once
 #include "gui.hpp"
+#include <iostream>
 
 const int SCREEN_FPS = 60;
 const int SCREEN_TICK_PER_FRAME = 1000 / SCREEN_FPS;
@@ -7,26 +8,26 @@ const int SCREEN_TICK_PER_FRAME = 1000 / SCREEN_FPS;
 //Change base attributes here.
 const int PLAYER_ONE_VEL_X = 0;
 const int PLAYER_ONE_VEL_Y = 10;
-const int PLAYER_ONE_POS_X = 10;
-const int PLAYER_ONE_POS_Y = SCREEN_HEIGHT/2 - SCREEN_HEIGHT/5 + 50;
-const unsigned PLAYER_ONE_WIDTH = SCREEN_WIDTH/30;
-const unsigned PLAYER_ONE_HEIGHT = SCREEN_HEIGHT/5;
+const int PLAYER_ONE_WIDTH = SCREEN_WIDTH/30;
+const int PLAYER_ONE_HEIGHT = SCREEN_HEIGHT/5;
+const int PLAYER_ONE_POS_X = 10 + PLAYER_ONE_WIDTH/2;
+const int PLAYER_ONE_POS_Y = SCREEN_HEIGHT/2 - SCREEN_HEIGHT/5 + PLAYER_ONE_HEIGHT/2;
 
 const int PLAYER_TWO_VEL_X = 0;
 const int PLAYER_TWO_VEL_Y = 10;
-const int PLAYER_TWO_POS_X = SCREEN_WIDTH - 10 - SCREEN_WIDTH/30;
-const int PLAYER_TWO_POS_Y = SCREEN_HEIGHT/2 - SCREEN_HEIGHT/5;
-const unsigned PLAYER_TWO_WIDTH = SCREEN_WIDTH/30;
-const unsigned PLAYER_TWO_HEIGHT = SCREEN_HEIGHT/5;
+const int PLAYER_TWO_WIDTH = SCREEN_WIDTH/30;
+const int PLAYER_TWO_HEIGHT = SCREEN_HEIGHT/5;
+const int PLAYER_TWO_POS_X = SCREEN_WIDTH - 10 - SCREEN_WIDTH/30 + PLAYER_TWO_WIDTH/2;
+const int PLAYER_TWO_POS_Y = SCREEN_HEIGHT/2 - SCREEN_HEIGHT/5 + PLAYER_TWO_HEIGHT/2;
 
 const int BALL_MAX_VEL_Y = 15;
 const int BALL_MIN_VEL_Y = 1;
 const int BALL_VEL_X = 5;
 const int BALL_VEL_Y = 10;
-const unsigned BALL_WIDTH = 15;
-const unsigned BALL_HEIGHT = 15; 
-const int BALL_POS_X = SCREEN_WIDTH/2 - BALL_WIDTH/2;
-const int BALL_POS_Y = SCREEN_HEIGHT/2 - BALL_HEIGHT; 
+const int BALL_WIDTH = 15;
+const int BALL_HEIGHT = 15; 
+const int BALL_POS_X = SCREEN_WIDTH/2;
+const int BALL_POS_Y = SCREEN_HEIGHT/2; 
 
 //*******************************************************************************************//
 class FPS_Timer
@@ -104,7 +105,7 @@ enum collision_type{
 class Particle
 {
 	public:
-		Particle(int, int, int, int, unsigned, unsigned);
+		Particle(int, int, int, int, int, int);
 		void move();
 		void renderToScreen();
 		void reboundFromWall();
@@ -116,16 +117,16 @@ class Particle
 		bool outOfBounds();
 		
 		int getCorner(bool, int);
-		int getCollisionPoint(bool, int, int, int, int, int);
+		int getCollisionPoint(bool, int, int, float, int);
 		int whichPlayer();
 
 		int vx; //velocity along x-axis
 		int vy; //velocity along y-axis
-		int x;
-		int y;
-		unsigned w;
-		unsigned h;
-		unsigned collisionType;
+		int x; //x coordinate of centre 
+		int y; //y coordinates of centre
+		int w;
+		int h;
+		int collisionType;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +137,7 @@ Particle PLAYERONE(PLAYER_ONE_VEL_X, PLAYER_ONE_VEL_Y, PLAYER_ONE_POS_X, PLAYER_
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Particle :: Particle(int a, int b, int c, int d, unsigned e, unsigned f){
+Particle :: Particle(int a, int b, int c, int d, int e, int f){
 	vx = a;
 	vy = b;
 	x = c;
@@ -158,13 +159,13 @@ void Particle :: move(){
 			vy = -PLAYER_ONE_VEL_Y;
 			x += vx;
 			y += vy;
-			if(y < 0) y = 0;
+			if(y  - h/2 < 0) y = h/2;
 		}
-		if(keyStates[SDL_SCANCODE_S] && PLAYERONE.y < SCREEN_HEIGHT - PLAYERONE.h){
+		if(keyStates[SDL_SCANCODE_S]){
 			vy = PLAYER_ONE_VEL_Y;
 			x += vx;
 			y += vy;
-			if (y > SCREEN_HEIGHT - PLAYERTWO.h) y = SCREEN_HEIGHT - PLAYERTWO.h;
+			if (y + h/2 > SCREEN_HEIGHT) y = SCREEN_HEIGHT - h/2;
 		}
 		vy = 0;
 	}
@@ -175,13 +176,13 @@ void Particle :: move(){
 			vy = -PLAYER_TWO_VEL_Y;
 			x += vx;
 			y += vy;
-			if(y < 0) y = 0;
+			if(y  - h/2 < 0) y = h/2;
 		}
 		if(keyStates[SDL_SCANCODE_DOWN]){
 			vy = PLAYER_TWO_VEL_Y;
 			x += vx;
 			y += vy;
-			if (y > SCREEN_HEIGHT - h) y = SCREEN_HEIGHT - h;
+			if (y + h/2 > SCREEN_HEIGHT) y = SCREEN_HEIGHT - h/2;
 		}
 		vy = 0;
 	}
@@ -189,19 +190,19 @@ void Particle :: move(){
 
 void Particle :: renderToScreen(){
 	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
-	SDL_Rect particleRect = {x, y, w, h};
+	SDL_Rect particleRect = {getCorner(X, TL), getCorner(Y, TL), w, h};
 	SDL_RenderFillRect( gRenderer,&particleRect);
 }
 
 void Particle :: reboundFromWall(){
-	if (y <= 0){
-		x = getCollisionPoint(X, getCorner(X, TL), getCorner(Y, TL), vx, vy, 0);
-		y = 0;
+	if (y - h/2 <= 0){
+		x = getCollisionPoint(X, x, y, (float)(vx/vy), h/2);
+		y = h/2;
 		vy *= -1;
 	}
-	else if(y >= SCREEN_HEIGHT - h){
-		x = getCollisionPoint(X, getCorner(X, BR), getCorner(Y, BR), vx, vy, SCREEN_HEIGHT) - w;
-		y = SCREEN_HEIGHT -h;
+	else if(y + h/2 >= SCREEN_HEIGHT){
+		x = getCollisionPoint(X, x, y, (float)(vx/vy), SCREEN_HEIGHT - h/2);
+		y = SCREEN_HEIGHT - h/2;
 		vy *= -1;
 	}
 }
@@ -212,166 +213,47 @@ void Particle :: reboundFrom(Particle player){
 	else if(keyStates[SDL_SCANCODE_UP] && player.whichPlayer() == 2) player.vy = -PLAYER_TWO_VEL_Y;
 	else if(keyStates[SDL_SCANCODE_S] && player.whichPlayer() == 2) player.vy = PLAYER_TWO_VEL_Y;
 
-	if (collisionType == TLBR){
-		if(y - vy < player.getCorner(Y, BR)){
-			y = getCollisionPoint(Y, getCorner(X, TL), getCorner(Y, TL), vx, vy, player.getCorner(X, BR));
-			x = player.getCorner(X, BR);
-			vy =  (vy - player.vy);
-			if (abs(vy) > BALL_MAX_VEL_Y){
-				vy = BALL_MAX_VEL_Y;
-			}
-			if (abs(vy) < BALL_MIN_VEL_Y){
-				vy = BALL_MIN_VEL_Y;
-			}		
-			if(collisionWithWall()){
-				y = SCREEN_HEIGHT - h;
-			}
+	while(collisionWith(player)){
+		y -= vy;
+		x -= vx;
+	}
+
+	if(getCorner(Y, TL) > player.getCorner(Y, TL) && getCorner(Y, BL) < player.getCorner(Y, BR)){
+		if(collisionType == TLBR || collisionType == BLTR){
+			y = getCollisionPoint(Y, x, y, (float)(vx/vy), player.getCorner(X, BR) + w/2);
+			x = player.getCorner(X, BR) + w/2;
 		}
-		else if(y - vy > player.getCorner(Y, BR)){
-			x = getCollisionPoint(X, getCorner(X, TL), getCorner(Y, TL), vx, vy, player.getCorner(Y, BR));
-			y = player.getCorner(Y, BR);
-			vy =  -(vy - player.vy);
-			if(collisionWithWall()){
-				y = SCREEN_HEIGHT - h;
-				x = player.getCorner(X, BR);
-			}
-			if (abs(vy) > BALL_MAX_VEL_Y){
-				vy = BALL_MAX_VEL_Y;
-			}
-			if (abs(vy) < BALL_MIN_VEL_Y){
-				vy = BALL_MIN_VEL_Y;
-			}
+		else if(collisionType == TRBL || collisionType == BRTL){
+			y = getCollisionPoint(Y, x, y, (float)(vx/vy), player.getCorner(X, BL) + w/2);
+			x = player.getCorner(X, BL) - w/2;
 		}
-		else{
-			x = player.getCorner(X, BR);
-			y = player.getCorner(Y, BR);
-			if(collisionWithWall()){
-				y = SCREEN_HEIGHT - h; 
-			}
-			//add special here
-		}
+		
+		int vy_copy = vy;
+		vy =  (vy - player.vy);
+		if (abs(vy) > BALL_MAX_VEL_Y) vy = BALL_MAX_VEL_Y * abs(vy_copy)/vy_copy;
+		if (abs(vy) < BALL_MIN_VEL_Y) vy = BALL_MIN_VEL_Y * abs(vy_copy)/vy_copy;
 		vx *= -1;
 	}
-	else if (collisionType == TRBL){
-		if(y - vy < player.getCorner(Y, BL)){
-			y = getCollisionPoint(Y, getCorner(X, TR), getCorner(Y, TR), vx, vy, player.getCorner(X, BL));
-			x = player.getCorner(X, BL) - w;
-			vy =  (vy - player.vy);
-			if (abs(vy) > BALL_MAX_VEL_Y){
-				vy = BALL_MAX_VEL_Y;
-			}
-			if (abs(vy) < BALL_MIN_VEL_Y){
-				vy = BALL_MIN_VEL_Y;
-			}			
-			if(collisionWithWall()){
-				y = SCREEN_HEIGHT - h;
-			}
+
+	else if(getCorner(Y, TL) < player.getCorner(Y, TL) || getCorner(Y, BL) > player.getCorner(Y, BR)){
+		if(collisionType == BLTR || collisionType == BRTL){
+			x = getCollisionPoint(X, x, y, (float)(vx/vy), player.getCorner(Y, TL) - h/2);	
+			y = player.getCorner(Y, TL) - h/2;
 		}
-		else if(y - vy > player.getCorner(Y, BL)){
-			x = getCollisionPoint(X, getCorner(X, TR), getCorner(Y, TR), vx, vy, player.getCorner(Y, BL)) - w;
-			y = player.getCorner(Y, BL);
-			vy =  -(vy - player.vy);
-			if(collisionWithWall()){
-				y = SCREEN_HEIGHT - h;
-				x = player.getCorner(X, BL) - w;
-			}
-			if (abs(vy) > BALL_MAX_VEL_Y){
-				vy = BALL_MAX_VEL_Y;
-			}
-			if (abs(vy) < BALL_MIN_VEL_Y){
-				vy = BALL_MIN_VEL_Y;
-			}
+		else if(collisionType == TLBR || collisionType == TRBL){
+			x = getCollisionPoint(X, x, y, (float)(vx/vy), player.getCorner(Y, BL) + h/2);
+			y = player.getCorner(Y, BL) + h/2;
 		}
-		else{
-			x = player.getCorner(X, BL) - w;
-			y = player.getCorner(Y, BL);
-			if(collisionWithWall()){
-				y = SCREEN_HEIGHT - h; 
-			}
-			//add special here
-		}
-		vx *= -1;		
+
+		int vy_copy = vy;
+		vy =  -(vy - player.vy);
+		if (abs(vy) > BALL_MAX_VEL_Y) vy = -BALL_MAX_VEL_Y * abs(vy_copy)/vy_copy;
+		if (abs(vy) < BALL_MIN_VEL_Y && vy != 0) vy = -BALL_MIN_VEL_Y * abs(vy_copy)/vy_copy;
+		
+		if(((collisionType == TLBR || collisionType == BLTR) && getCorner(X, TL) >= player.x) || 
+			((collisionType == TRBL || collisionType == BRTL) && getCorner(X, TR) <= player.x)) vx *= -1;
 	}
-	else if (collisionType == BLTR){
-		if(y - vy > player.getCorner(Y, TR)){
-			y = getCollisionPoint(Y, getCorner(X, TR), getCorner(Y, TR), vx, vy, player.getCorner(X, TR)) - h;
-			x = player.getCorner(X, TR);
-			vy =  (vy - player.vy);
-			if (abs(vy) > BALL_MAX_VEL_Y){
-				vy = BALL_MAX_VEL_Y;
-			}
-			if (abs(vy) < BALL_MIN_VEL_Y){
-				vy = BALL_MIN_VEL_Y;
-			}			
-			if(collisionWithWall()){
-				y = 0;
-			}
-		}
-		else if(y - vy < player.getCorner(Y, TR)){
-			x = getCollisionPoint(X, getCorner(X, TR), getCorner(Y, TR), vx, vy, player.getCorner(Y, TR));
-			y = player.getCorner(Y, TR) - h;
-			vy =  -(vy - player.vy);
-			if(collisionWithWall()){
-				y = 0;
-				x = player.getCorner(X, TR); 
-			}
-			if (abs(vy) > BALL_MAX_VEL_Y){
-				vy = -BALL_MAX_VEL_Y;
-			}
-			if (abs(vy) < BALL_MIN_VEL_Y){
-				vy = -BALL_MIN_VEL_Y;
-			}
-		}
-		else{
-			x = player.getCorner(X, TR);
-			y = player.getCorner(Y, TR) - h;
-			if(collisionWithWall()){
-				y = 0; 
-			}
-			//add special here
-		}
-		vx *= -1;		
-	}
-	else if (collisionType == BRTL){
-		if(y - vy > player.getCorner(Y, TL)){
-			y = getCollisionPoint(Y, getCorner(X, TR), getCorner(Y, TR), vx, vy, player.getCorner(X, TL)) - h;
-			x = player.getCorner(X, TL) - w;
-			vy =  (vy - player.vy);
-			if (abs(vy) > BALL_MAX_VEL_Y){
-				vy = BALL_MAX_VEL_Y;
-			}
-			if (abs(vy) < BALL_MIN_VEL_Y){
-				vy = BALL_MIN_VEL_Y;
-			}			
-			if(collisionWithWall()){
-				y = 0;
-			}
-		}
-		else if(y - vy < player.getCorner(Y, TL)){
-			x = getCollisionPoint(X, getCorner(X, TR), getCorner(Y, TR), vx, vy, player.getCorner(Y, TL)) - w;
-			y = player.getCorner(Y, TL) - h;
-			vy =  -(vy - player.vy);
-			if(collisionWithWall()){
-				y = 0;
-				x = player.getCorner(X, TL) - w;
-			}
-			if (abs(vy) > BALL_MAX_VEL_Y){
-				vy = -BALL_MAX_VEL_Y;
-			}
-			if (abs(vy) < BALL_MIN_VEL_Y){
-				vy = -BALL_MIN_VEL_Y;
-			}
-		}
-		else{
-			x = player.getCorner(X, TL) - w;
-			y = player.getCorner(Y, TL) - h;
-			if(collisionWithWall()){
-				y = 0;
-			}
-			//add special here
-		}
-		vx *= -1;
-	} 
+	collisionType = -1;
 }
 
 void Particle :: reset(){
@@ -414,51 +296,51 @@ bool Particle :: collisionWith(Particle player){
 }
 
 bool Particle :: collisionWithWall(){
-	return (y <= 0 || y >= SCREEN_HEIGHT - h);
+	return (y - h/2 <= 0 || y  + h/2 >= SCREEN_HEIGHT);
 }
 
 bool Particle :: outOfBounds(){
-	return (x + w <= 0 || x >= SCREEN_WIDTH);
+	return (x <= 0 || x >= SCREEN_WIDTH);
 }
 
 int Particle :: getCorner(bool choice1, int choice2){
 	if(choice1 == X){
 		if(choice2 == TL){
-			return x;
+			return x - w/2;
 		}
 		if(choice2 == TR){
-			return x+w;
+			return x + w/2;
 		}
 		if(choice2 == BL){
-			return x;
+			return x - w/2;
 		}
 		if(choice2 == BR){
-			return x+w;
+			return x + w/2;
 		}
 	}
 	else{
 		if(choice2 == TL){
-			return y;
+			return y - h/2;
 		}
 		if(choice2 == TR){
-			return y;
+			return y - h/2;
 		}
 		if(choice2 == BL){
-			return y+h;
+			return y + h/2;
 		}
 		if(choice2 == BR){
-			return y+h;
+			return y + h/2;
 		}
 	}
 }
 
-int Particle :: getCollisionPoint(bool choice, int x1, int y1, int vx, int vy, int corner){
-	float m = (float)vy/vx;
+int Particle :: getCollisionPoint(bool choice, int x1, int y1, float m, int coordinate){
+	m = (1/m);
 	if(choice == X){
-		return x1 + (corner-y1)/m;
+		return x1 + (coordinate-y1)/m;
 	}
 	else{
-		return y1 + m*(corner - x1);
+		return y1 + m*(coordinate - x1);
 	}
 }
 
