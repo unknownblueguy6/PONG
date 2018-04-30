@@ -1,6 +1,5 @@
 #pragma once
 #include "gui.hpp"
-#include <iostream>
 
 const int SCREEN_FPS = 60;
 const int SCREEN_TICK_PER_FRAME = 1000 / SCREEN_FPS;
@@ -105,11 +104,13 @@ enum collision_type{
 class Particle
 {
 	public:
+	//Member functions	
 		Particle(int, int, int, int, int, int);
 		void move();
 		void renderToScreen();
 		void reboundFromWall();
 		void reboundFrom(Particle);
+		void updateScore();
 		void reset();
 
 		bool collisionWith(Particle);
@@ -120,6 +121,9 @@ class Particle
 		int getCollisionPoint(bool, int, int, float, int);
 		int whichPlayer();
 
+	//Data members 	
+	int score;
+	private:
 		int vx; //velocity along x-axis
 		int vy; //velocity along y-axis
 		int x; //x coordinate of centre 
@@ -144,7 +148,8 @@ Particle :: Particle(int a, int b, int c, int d, int e, int f){
 	y = d;
 	w = e;
 	h = f;
-	collisionType = -1;	
+	collisionType = -1;
+	score = 0;	
 }
 
 void Particle :: move(){
@@ -256,6 +261,15 @@ void Particle :: reboundFrom(Particle player){
 	collisionType = -1;
 }
 
+void Particle :: updateScore(){
+	if(BALL.x <= 0 && whichPlayer() == 2){
+		++score;
+	}
+	else if(BALL.x >= SCREEN_WIDTH && whichPlayer() == 1){
+		++score;
+	}
+}
+
 void Particle :: reset(){
 	if (whichPlayer() == -1){
 		vx = BALL_VEL_X;
@@ -361,7 +375,9 @@ void render();
 void newGame(){
 	BALL.reset();
 	PLAYERONE.reset();
-	PLAYERTWO.reset();	
+	PLAYERONE.score = 0;
+	PLAYERTWO.reset();
+	PLAYERTWO.score = 0;	
 }
 
 void renderAll(){
@@ -370,6 +386,8 @@ void renderAll(){
 		PLAYERONE.renderToScreen();
 		PLAYERTWO.renderToScreen();
 		BALL.renderToScreen();
+
+		renderText(std::to_string(PLAYERONE.score) + " " + std::to_string(PLAYERTWO.score), SCREEN_WIDTH/2, 45, 0xFF, 0xFF, 0xFF);
 
 		render();
 }
