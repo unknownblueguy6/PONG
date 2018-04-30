@@ -1,5 +1,4 @@
 #include "game.hpp"
-
 int main(int argc, char* argv[]){
 	init();
 
@@ -33,6 +32,7 @@ int main(int argc, char* argv[]){
 		else if(BALL.collisionWith(PLAYERTWO)){
 			BALL.reboundFrom(PLAYERTWO);
 		}
+
 
 		if (BALL.outOfBounds()){
 			PLAYERONE.reset();
