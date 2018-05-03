@@ -17,3 +17,6 @@ particle.cpp
 pong.exe
 emergency.cpp
 ARCADE.TTF
+LICENSE.freetype.txt
+SDL2_ttf.dll
+libfreetype-6.dll
