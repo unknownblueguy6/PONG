@@ -93,14 +93,6 @@ enum corners{
 	BR //bottom right
 };
 
-enum collision_type{
-	TLBR, //top left corner of ball and bottom right corner of player
-	TRBL, //top right corner of ball and bottom left corner of player
-	BLTR, //bottom left corner of ball and top right corner of player
-	BRTL //bottom right corner of ball and top left corner of player
-};
-
-
 class Particle
 {
 	public:
@@ -123,15 +115,14 @@ class Particle
 		int whichPlayer();
 
 	//Data members 	
-	int score;
-	//private:
+	int score = 0;
+	private:
 		int vx; //velocity along x-axis
 		int vy; //velocity along y-axis
 		int x; //x coordinate of centre 
 		int y; //y coordinates of centre
 		int w;
 		int h;
-		int collisionType;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,7 +140,6 @@ Particle :: Particle(int a, int b, int c, int d, int e, int f){
 	y = d;
 	w = e;
 	h = f;
-	collisionType = -1;
 	score = 0;	
 }
 
@@ -297,7 +287,7 @@ void Particle :: reboundFrom(Particle player){
 			y = SCREEN_HEIGHT - h/2;
 		}
 		if(collisionWith(player)){
-			if(collisionType == TLBR || collisionType == BLTR){
+			if(vx < 0){
 				x = player.getCorner(X, BR) + w/2;
 			}
 			else{
@@ -305,7 +295,6 @@ void Particle :: reboundFrom(Particle player){
 			}
 		}
 	}
-	collisionType = -1;
 }
 
 void Particle :: updateScore(){
@@ -323,7 +312,6 @@ void Particle :: reset(){
 		vy = BALL_VEL_Y;
 		x = BALL_POS_X;
 		y = BALL_POS_Y;
-		collisionType = -1;
 	}
 	else if (whichPlayer() == 1){
 		x = PLAYER_ONE_POS_X;
@@ -337,22 +325,17 @@ void Particle :: reset(){
 
 bool Particle :: collisionWith(Particle player){
 	if (getCorner(X, TL)  >= player.getCorner(X, TL) && getCorner(X, TL)  <= player.getCorner(X, BR) && getCorner(Y, TL)  >= player.getCorner(Y, TL) && getCorner(Y, TL)  <= player.getCorner(Y, BR)){
-		collisionType = TLBR;
 		return true;
 	} 
 	if (getCorner(X, TR)  >= player.getCorner(X, TL) && getCorner(X, TR)  <= player.getCorner(X, BR) && getCorner(Y, TR)  >= player.getCorner(Y, TL) && getCorner(Y, TR)  <= player.getCorner(Y, BR)){
-		collisionType = TRBL;
 		return true;	
 	}
 	if (getCorner(X, BL)  >= player.getCorner(X, TL) && getCorner(X, BL)  <= player.getCorner(X, BR) && getCorner(Y, BL)  >= player.getCorner(Y, TL) && getCorner(Y, BL)  <= player.getCorner(Y, BR)){
-		collisionType = BLTR;
 		return true;
 	}
 	if (getCorner(X, BR)  >= player.getCorner(X, TL) && getCorner(X, BR)  <= player.getCorner(X, BR) && getCorner(Y, BR)  >= player.getCorner(Y, TL) && getCorner(Y, BR)  <= player.getCorner(Y, BR)){
-		collisionType = BRTL;
 		return true;
 	}
-	collisionType = -1;
 	return false;
 }
 
