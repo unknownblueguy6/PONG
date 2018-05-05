@@ -1,7 +1,6 @@
 #pragma once
 #include "gui.hpp"
-#include <iostream>
-
+#include <cmath>
 const int SCREEN_FPS = 60;
 const int SCREEN_TICK_PER_FRAME = 1000 / SCREEN_FPS;
 
@@ -119,12 +118,13 @@ class Particle
 		bool outOfBounds();
 		
 		int getCorner(bool, int);
-		int getCollisionPoint(bool, int, int, float, int);
+		double slopeChange(int, int);
+		int getCollisionPoint(bool, int, int, int);
 		int whichPlayer();
 
 	//Data members 	
 	int score;
-	private:
+	//private:
 		int vx; //velocity along x-axis
 		int vy; //velocity along y-axis
 		int x; //x coordinate of centre 
@@ -202,12 +202,12 @@ void Particle :: renderToScreen(){
 
 void Particle :: reboundFromWall(){
 	if (y - h/2 <= 0){
-		x = getCollisionPoint(X, x, y, (float)(vx/vy), h/2);
+		x = getCollisionPoint(X, x, y, h/2);
 		y = h/2;
 		vy *= -1;
 	}
 	else if(y + h/2 >= SCREEN_HEIGHT){
-		x = getCollisionPoint(X, x, y, (float)(vx/vy), SCREEN_HEIGHT - h/2);
+		x = getCollisionPoint(X, x, y, SCREEN_HEIGHT - h/2);
 		y = SCREEN_HEIGHT - h/2;
 		vy *= -1;
 	}
@@ -224,51 +224,71 @@ void Particle :: reboundFrom(Particle player){
 		x -= vx;
 	}
 
-	y += vy;
-	x += vx;
+	y -= vy;
+	x -= vx;
 
-	if(abs(y) - abs(player.y) == h/2 + (player.h)/2 && abs(x) - abs(player.x) == w/2 + (player.w)/2){ //special pixel-perfect collision
-		vy = 20 * -abs(vy)/vy;
-		vx = 10 * -abs(vx)/vx;
-	}
-
-
-	else if(getCorner(Y, TL) >= player.getCorner(Y, TL) || getCorner(Y, BL) <= player.getCorner(Y, BR)){
-		if(collisionType == TLBR || collisionType == BLTR){
-			y = getCollisionPoint(Y, x, y, (float)(vx/vy), player.getCorner(X, BR) + w/2);
+	if( (vy > 0 && ((vx  < 0 && slopeChange(player.getCorner(X, TR), player.getCorner(Y, TR)) > 0) || (vx > 0 && slopeChange(player.getCorner(X, TL), player.getCorner(Y, TL)) < 0))) ||
+		(vy < 0 && ((vx  < 0 && slopeChange(player.getCorner(X, BR), player.getCorner(Y, BR)) < 0) || (vx > 0 && slopeChange(player.getCorner(X, BL), player.getCorner(Y, BL)) > 0))) ) {
+		if(vx < 0){
+			y = getCollisionPoint(Y, x, y, player.getCorner(X, BR) + w/2);
 			x = player.getCorner(X, BR) + w/2;
 		}
-		else if(collisionType == TRBL || collisionType == BRTL){
-			y = getCollisionPoint(Y, x, y, (float)(vx/vy), player.getCorner(X, BL) + w/2);
+		else if(vx > 0){
+			y = getCollisionPoint(Y, x, y, player.getCorner(X, BL) - w/2);
 			x = player.getCorner(X, BL) - w/2;
 		}
-		
-		int vy_copy = vy;
-		vy =  (vy - player.vy);
-		if (abs(vy) > BALL_MAX_VEL_Y) vy = BALL_MAX_VEL_Y * abs(vy_copy)/vy_copy;
-		if (abs(vy) < BALL_MIN_VEL_Y) vy = BALL_MIN_VEL_Y * abs(vy_copy)/vy_copy;
+	 	
+	 	int direction = std :: abs(vy)/vy;
+		if (std :: abs(vy - player.vy) > BALL_MAX_VEL_Y) vy = direction * BALL_MAX_VEL_Y;
+		else if (std :: abs(vy - player.vy) < BALL_MIN_VEL_Y) vy = direction * BALL_MIN_VEL_Y;
+		else vy = direction * std::abs(vy - player.vy);
 		vx *= -1;
 	}
-
-	else if(getCorner(Y, BL) <= player.getCorner(Y, TL) || getCorner(Y, TL) >= player.getCorner(Y, BR)){
-		if(collisionType == BLTR || collisionType == BRTL){
-			x = getCollisionPoint(X, x, y, (float)(vx/vy), player.getCorner(Y, TL) - h/2);	
+	else if((vy > 0 && ((vx  < 0 && slopeChange(player.getCorner(X, TR), player.getCorner(Y, TR)) < 0) || (vx > 0 && slopeChange(player.getCorner(X, TL), player.getCorner(Y, TL)) > 0))) ||
+			(vy < 0 && ((vx  < 0 && slopeChange(player.getCorner(X, BR), player.getCorner(Y, BR)) > 0) || (vx > 0 && slopeChange(player.getCorner(X, BL), player.getCorner(Y, BL)) < 0))) ) {
+		
+		if(vy > 0){
+			x = getCollisionPoint(X, x, y, player.getCorner(Y, TL) - h/2);	
 			y = player.getCorner(Y, TL) - h/2;
 		}
-		else if(collisionType == TLBR || collisionType == TRBL){
-			x = getCollisionPoint(X, x, y, (float)(vx/vy), player.getCorner(Y, BL) + h/2);
+		
+		else if(vy < 0){
+			x = getCollisionPoint(X, x, y, player.getCorner(Y, BL) + h/2);
 			y = player.getCorner(Y, BL) + h/2;
 		}
 
-		int vy_copy = vy;
-		vy =  -(vy - player.vy);
-		if (abs(vy) > BALL_MAX_VEL_Y) vy = -BALL_MAX_VEL_Y * abs(vy_copy)/vy_copy;
-		if (abs(vy) < BALL_MIN_VEL_Y && vy != 0) vy = -BALL_MIN_VEL_Y * abs(vy_copy)/vy_copy;
+		int direction = std :: abs(vy)/vy;
+		if (std :: abs(vy - player.vy) > BALL_MAX_VEL_Y) vy = -direction * BALL_MAX_VEL_Y;
+		else if (std :: abs(vy - player.vy) < BALL_MIN_VEL_Y) vy = -direction * BALL_MIN_VEL_Y;
+		else vy = -direction * std::abs(vy - player.vy);
+
 		
-		if(((collisionType == TLBR || collisionType == BLTR) && getCorner(X, TL) >= player.x) || 
-			((collisionType == TRBL || collisionType == BRTL) && getCorner(X, TR) <= player.x)) vx *= -1;
+		if( (vx < 0 && getCorner(X, TL) >= player.x) || 
+			(vx > 0 && getCorner(X, TR) <= player.x)) vx *= -1;
 	}
 
+	else{ //special corner case
+		if(vx < 0 && vy < 0){ 
+			x = player.getCorner(X, BR) + w/2;
+			y = player.getCorner(Y, BR) + h/2;
+		}	
+		if(vx > 0 && vy < 0){ 
+			x = player.getCorner(X, BL) - w/2;
+			y = player.getCorner(Y, BL) + h/2;
+		}	
+		if(vx < 0 && vy > 0){
+			x = player.getCorner(X, TR) + w/2;
+			y = player.getCorner(Y, TR) - h/2;
+		}
+		if(vx > 0 && vy > 0){ 
+			x = player.getCorner(X, TL) - w/2;
+			y = player.getCorner(Y, TL) - h/2; 
+		}
+		vy = 20 * -(std :: abs(vy)/vy);
+		vx = 10 * -(std :: abs(vx)/vx);
+	}
+
+	
 	if(collisionWithWall()){
 		if(y - h/2 < 0){
 			y = h/2;
@@ -344,6 +364,18 @@ bool Particle :: outOfBounds(){
 	return (x <= 0 || x >= SCREEN_WIDTH);
 }
 
+double Particle :: slopeChange(int x1, int y1){
+	float m1 = (float)((float)(y - y1)/(float)(x - x1));
+	y -= vy;
+	x -= vx;
+	if(x - x1 == 0){
+		y -= vy;
+		x -= vx;
+	} 
+	float m2 = (float)((float)(y - y1)/float((x - x1)));
+
+	return m1 - m2; 
+}
 int Particle :: getCorner(bool choice1, int choice2){
 	if(choice1 == X){
 		if(choice2 == TL){
@@ -375,8 +407,8 @@ int Particle :: getCorner(bool choice1, int choice2){
 	}
 }
 
-int Particle :: getCollisionPoint(bool choice, int x1, int y1, float m, int coordinate){
-	m = (1/m);
+int Particle :: getCollisionPoint(bool choice, int x1, int y1, int coordinate){
+	float m = (float)((float)(vy)/(float)(vx));
 	if(choice == X){
 		return x1 + (coordinate-y1)/m;
 	}
