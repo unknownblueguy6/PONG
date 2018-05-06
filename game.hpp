@@ -102,7 +102,6 @@ class Particle
 		void renderToScreen();
 		void reboundFromWall();
 		void reboundFrom(Particle);
-		void updateScore();
 		void reset();
 
 		bool collisionWith(Particle);
@@ -116,20 +115,20 @@ class Particle
 
 	//Data members 	
 	int score = 0;
+	int vx; //velocity along x-axis
+	int vy; //velocity along y-axis
 	private:
-		int vx; //velocity along x-axis
-		int vy; //velocity along y-axis
 		int x; //x coordinate of centre 
 		int y; //y coordinates of centre
-		int w;
-		int h;
+		int w; //width of particle
+		int h; //height of particle
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Particle PLAYERONE(PLAYER_ONE_VEL_X, PLAYER_ONE_VEL_Y, PLAYER_ONE_POS_X, PLAYER_ONE_POS_Y, PLAYER_ONE_WIDTH, PLAYER_ONE_HEIGHT),
-		 PLAYERTWO(PLAYER_TWO_VEL_X, PLAYER_TWO_VEL_Y, PLAYER_TWO_POS_X, PLAYER_TWO_POS_Y, PLAYER_TWO_WIDTH, PLAYER_TWO_HEIGHT),
-		 BALL(BALL_VEL_X, BALL_VEL_Y, BALL_POS_X, BALL_POS_Y, BALL_WIDTH, BALL_HEIGHT);
+Particle PLAYERONE(PLAYER_ONE_VEL_X, PLAYER_ONE_VEL_Y, PLAYER_ONE_POS_X, PLAYER_ONE_POS_Y, PLAYER_ONE_WIDTH, PLAYER_ONE_HEIGHT);
+Particle PLAYERTWO(PLAYER_TWO_VEL_X, PLAYER_TWO_VEL_Y, PLAYER_TWO_POS_X, PLAYER_TWO_POS_Y, PLAYER_TWO_WIDTH, PLAYER_TWO_HEIGHT);
+Particle BALL(BALL_VEL_X, BALL_VEL_Y, BALL_POS_X, BALL_POS_Y, BALL_WIDTH, BALL_HEIGHT);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -227,7 +226,6 @@ void Particle :: reboundFrom(Particle player){
 			y = getCollisionPoint(Y, x, y, player.getCorner(X, BL) - w/2);
 			x = player.getCorner(X, BL) - w/2;
 		}
-	 	
 	 	int direction = std :: abs(vy)/vy;
 		if (std :: abs(vy - player.vy) > BALL_MAX_VEL_Y) vy = direction * BALL_MAX_VEL_Y;
 		else if (std :: abs(vy - player.vy) < BALL_MIN_VEL_Y) vy = direction * BALL_MIN_VEL_Y;
@@ -257,6 +255,23 @@ void Particle :: reboundFrom(Particle player){
 			(vx > 0 && getCorner(X, TR) <= player.x)) vx *= -1;
 	}
 
+	else if( (vy > 0 && ((vx  < 0 && slopeChange(player.getCorner(X, TR), player.getCorner(Y, TR)) == 0 && y > player.getCorner(Y, TR)) || (vx > 0 && slopeChange(player.getCorner(X, TL), player.getCorner(Y, TL)) == 0 && y > player.getCorner(Y, TL)))) ||
+			 (vy < 0 && ((vx  < 0 && slopeChange(player.getCorner(X, BR), player.getCorner(Y, BR)) == 0 && y < player.getCorner(Y, BR)) || (vx > 0 && slopeChange(player.getCorner(X, BL), player.getCorner(Y, BL)) == 0 && y < player.getCorner(Y, BL)))) ) {
+		if(vx < 0){
+			y = getCollisionPoint(Y, x, y, player.getCorner(X, BR) + w/2);
+			x = player.getCorner(X, BR) + w/2;
+		}
+		else if(vx > 0){
+			y = getCollisionPoint(Y, x, y, player.getCorner(X, BL) - w/2);
+			x = player.getCorner(X, BL) - w/2;
+		}
+	 	int direction = std :: abs(vy)/vy;
+		if (std :: abs(vy - player.vy) > BALL_MAX_VEL_Y) vy = direction * BALL_MAX_VEL_Y;
+		else if (std :: abs(vy - player.vy) < BALL_MIN_VEL_Y) vy = direction * BALL_MIN_VEL_Y;
+		else vy = direction * std::abs(vy - player.vy);
+		vx *= -1;
+
+	}
 	else{ //special corner case
 		if(vx < 0 && vy < 0){ 
 			x = player.getCorner(X, BR) + w/2;
@@ -297,18 +312,17 @@ void Particle :: reboundFrom(Particle player){
 	}
 }
 
-void Particle :: updateScore(){
-	if(BALL.x <= 0 && whichPlayer() == 2){
-		++score;
-	}
-	else if(BALL.x >= SCREEN_WIDTH && whichPlayer() == 1){
-		++score;
-	}
-}
-
 void Particle :: reset(){
 	if (whichPlayer() == -1){
-		vx = BALL_VEL_X;
+		if(vx < 0){
+			vx = BALL_VEL_X;	
+		}
+		else if(vx > 0){
+			vx = -BALL_VEL_X;
+		}
+		else{
+			vx = BALL_VEL_X;
+		}
 		vy = BALL_VEL_Y;
 		x = BALL_POS_X;
 		y = BALL_POS_Y;
@@ -340,23 +354,27 @@ bool Particle :: collisionWith(Particle player){
 }
 
 bool Particle :: collisionWithWall(){
-	return (y - h/2 <= 0 || y  + h/2 >= SCREEN_HEIGHT);
+	return (y - h/2 <= 0 || y  + h/2 >= (int)(SCREEN_HEIGHT));
 }
 
 bool Particle :: outOfBounds(){
-	return (x <= 0 || x >= SCREEN_WIDTH);
+	return (x + w/2 <= 0 || x  - w/2 >= (int)(SCREEN_WIDTH));
 }
 
 double Particle :: slopeChange(int x1, int y1){
 	float m1 = (float)((float)(y - y1)/(float)(x - x1));
+	int y_copy = y;
+	int x_copy = x;
 	y -= vy;
 	x -= vx;
 	if(x - x1 == 0){
 		y -= vy;
 		x -= vx;
-	} 
+	}
 	float m2 = (float)((float)(y - y1)/float((x - x1)));
-
+	if((x1 - x_copy)*(x1 - x) < 0){
+		return m2-m1;
+	}
 	return m1 - m2; 
 }
 int Particle :: getCorner(bool choice1, int choice2){
@@ -411,6 +429,7 @@ int Particle :: whichPlayer(){
 //GAME FUNCTIONS*****************************************************************************//
 
 void newGame();
+void updateScore();
 void render();
 
 
@@ -420,6 +439,16 @@ void newGame(){
 	PLAYERONE.score = 0;
 	PLAYERTWO.reset();
 	PLAYERTWO.score = 0;	
+}
+
+void updateScore(){
+	if(BALL.vx < 0){
+		++PLAYERTWO.score;
+	}
+	else if(BALL.vx > 0){
+		++PLAYERONE.score;
+	}
+
 }
 
 void renderAll(){
