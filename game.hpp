@@ -1,5 +1,6 @@
 #pragma once
 #include "gui.hpp"
+#include <iostream>
 #include <cmath>
 const int SCREEN_FPS = 60;
 const int SCREEN_TICK_PER_FRAME = 1000 / SCREEN_FPS;
@@ -22,7 +23,7 @@ const int PLAYER_TWO_POS_Y = SCREEN_HEIGHT/2 - SCREEN_HEIGHT/5 + PLAYER_TWO_HEIG
 const int BALL_MAX_VEL_Y = 15;
 const int BALL_MIN_VEL_Y = 1;
 const int BALL_VEL_X = 5;
-const int BALL_VEL_Y = 10;
+const int BALL_VEL_Y = 5;
 const int BALL_WIDTH = 15;
 const int BALL_HEIGHT = 15; 
 const int BALL_POS_X = SCREEN_WIDTH/2;
@@ -109,6 +110,7 @@ class Particle
 		bool outOfBounds();
 		
 		int getCorner(bool, int);
+		int getNearestCorner(int, int, Particle);
 		double slopeChange(int, int);
 		int getCollisionPoint(bool, int, int, int);
 		int whichPlayer();
@@ -203,96 +205,52 @@ void Particle :: reboundFromWall(){
 }
 
 void Particle :: reboundFrom(Particle player){
-	if(keyStates[SDL_SCANCODE_W] && player.whichPlayer() == 1) player.vy = -PLAYER_ONE_VEL_Y;
-	else if(keyStates[SDL_SCANCODE_S] && player.whichPlayer() == 1) player.vy = PLAYER_ONE_VEL_Y;
-	else if(keyStates[SDL_SCANCODE_UP] && player.whichPlayer() == 2) player.vy = -PLAYER_TWO_VEL_Y;
-	else if(keyStates[SDL_SCANCODE_S] && player.whichPlayer() == 2) player.vy = PLAYER_TWO_VEL_Y;
-
 	while(collisionWith(player)){
 		y -= vy;
 		x -= vx;
 	}
 
-	y -= vy;
-	x -= vx;
-
-	if( (vy > 0 && ((vx  < 0 && slopeChange(player.getCorner(X, TR), player.getCorner(Y, TR)) > 0) || (vx > 0 && slopeChange(player.getCorner(X, TL), player.getCorner(Y, TL)) < 0))) ||
-		(vy < 0 && ((vx  < 0 && slopeChange(player.getCorner(X, BR), player.getCorner(Y, BR)) < 0) || (vx > 0 && slopeChange(player.getCorner(X, BL), player.getCorner(Y, BL)) > 0))) ) {
-		if(vx < 0){
-			y = getCollisionPoint(Y, x, y, player.getCorner(X, BR) + w/2);
-			x = player.getCorner(X, BR) + w/2;
-		}
-		else if(vx > 0){
-			y = getCollisionPoint(Y, x, y, player.getCorner(X, BL) - w/2);
-			x = player.getCorner(X, BL) - w/2;
-		}
-	 	int direction = std :: abs(vy)/vy;
-		if (std :: abs(vy - player.vy) > BALL_MAX_VEL_Y) vy = direction * BALL_MAX_VEL_Y;
-		else if (std :: abs(vy - player.vy) < BALL_MIN_VEL_Y) vy = direction * BALL_MIN_VEL_Y;
-		else vy = direction * std::abs(vy - player.vy);
-		vx *= -1;
-	}
-	else if((vy > 0 && ((vx  < 0 && slopeChange(player.getCorner(X, TR), player.getCorner(Y, TR)) < 0) || (vx > 0 && slopeChange(player.getCorner(X, TL), player.getCorner(Y, TL)) > 0))) ||
-			(vy < 0 && ((vx  < 0 && slopeChange(player.getCorner(X, BR), player.getCorner(Y, BR)) > 0) || (vx > 0 && slopeChange(player.getCorner(X, BL), player.getCorner(Y, BL)) < 0))) ) {
-		
-		if(vy > 0){
-			x = getCollisionPoint(X, x, y, player.getCorner(Y, TL) - h/2);	
-			y = player.getCorner(Y, TL) - h/2;
-		}
-		
-		else if(vy < 0){
-			x = getCollisionPoint(X, x, y, player.getCorner(Y, BL) + h/2);
-			y = player.getCorner(Y, BL) + h/2;
+	if(player.whichPlayer() == 1){
+		if (getNearestCorner(TR, BR, player) == TR){
+			if(vy < 0){
+				if (getCorner(X, BR) <= player.getCorner(X, TR) && getCorner(Y, BR) <= player.getCorner(Y, TR)){
+					
+				}
+				else{
+				
+				}
+			}
+			else{
+				
+			}
 		}
 
-		int direction = std :: abs(vy)/vy;
-		if (std :: abs(vy - player.vy) > BALL_MAX_VEL_Y) vy = -direction * BALL_MAX_VEL_Y;
-		else if (std :: abs(vy - player.vy) < BALL_MIN_VEL_Y) vy = -direction * BALL_MIN_VEL_Y;
-		else vy = -direction * std::abs(vy - player.vy);
+		else{
 
-		
-		if( (vx < 0 && getCorner(X, TL) >= player.x) || 
-			(vx > 0 && getCorner(X, TR) <= player.x)) vx *= -1;
+		}
 	}
 
-	else if( (vy > 0 && ((vx  < 0 && slopeChange(player.getCorner(X, TR), player.getCorner(Y, TR)) == 0 && y > player.getCorner(Y, TR)) || (vx > 0 && slopeChange(player.getCorner(X, TL), player.getCorner(Y, TL)) == 0 && y > player.getCorner(Y, TL)))) ||
-			 (vy < 0 && ((vx  < 0 && slopeChange(player.getCorner(X, BR), player.getCorner(Y, BR)) == 0 && y < player.getCorner(Y, BR)) || (vx > 0 && slopeChange(player.getCorner(X, BL), player.getCorner(Y, BL)) == 0 && y < player.getCorner(Y, BL)))) ) {
-		if(vx < 0){
-			y = getCollisionPoint(Y, x, y, player.getCorner(X, BR) + w/2);
-			x = player.getCorner(X, BR) + w/2;
+	else{
+		if (getNearestCorner(TL, BL, player) == TL){
+			if(vy  < 0){
+				if (getCorner(X, BL) <= player.getCorner(X, TL) && getCorner(Y, BL) <= player.getCorner(Y, TL)){
+					
+				}
+				else{
+				
+				}
+			}
+			else{
+				
+			}
+
 		}
-		else if(vx > 0){
-			y = getCollisionPoint(Y, x, y, player.getCorner(X, BL) - w/2);
-			x = player.getCorner(X, BL) - w/2;
+
+		else{
+
 		}
-	 	int direction = std :: abs(vy)/vy;
-		if (std :: abs(vy - player.vy) > BALL_MAX_VEL_Y) vy = direction * BALL_MAX_VEL_Y;
-		else if (std :: abs(vy - player.vy) < BALL_MIN_VEL_Y) vy = direction * BALL_MIN_VEL_Y;
-		else vy = direction * std::abs(vy - player.vy);
-		vx *= -1;
 
 	}
-	else{ //special corner case
-		if(vx < 0 && vy < 0){ 
-			x = player.getCorner(X, BR) + w/2;
-			y = player.getCorner(Y, BR) + h/2;
-		}	
-		if(vx > 0 && vy < 0){ 
-			x = player.getCorner(X, BL) - w/2;
-			y = player.getCorner(Y, BL) + h/2;
-		}	
-		if(vx < 0 && vy > 0){
-			x = player.getCorner(X, TR) + w/2;
-			y = player.getCorner(Y, TR) - h/2;
-		}
-		if(vx > 0 && vy > 0){ 
-			x = player.getCorner(X, TL) - w/2;
-			y = player.getCorner(Y, TL) - h/2; 
-		}
-		vy = 20 * -(std :: abs(vy)/vy);
-		vx = 10 * -(std :: abs(vx)/vx);
-	}
-
 	
 	if(collisionWithWall()){
 		if(y - h/2 < 0){
@@ -338,7 +296,10 @@ void Particle :: reset(){
 }
 
 bool Particle :: collisionWith(Particle player){
-	if (getCorner(X, TL)  >= player.getCorner(X, TL) && getCorner(X, TL)  <= player.getCorner(X, BR) && getCorner(Y, TL)  >= player.getCorner(Y, TL) && getCorner(Y, TL)  <= player.getCorner(Y, BR)){
+	if    (getCorner(X, TL)  >= player.getCorner(X, TL) 
+		&& getCorner(X, TL)  <= player.getCorner(X, BR)
+		&& getCorner(Y, TL)  >= player.getCorner(Y, TL)
+		&& getCorner(Y, TL)  <= player.getCorner(Y, BR)) {
 		return true;
 	} 
 	if (getCorner(X, TR)  >= player.getCorner(X, TL) && getCorner(X, TR)  <= player.getCorner(X, BR) && getCorner(Y, TR)  >= player.getCorner(Y, TL) && getCorner(Y, TR)  <= player.getCorner(Y, BR)){
@@ -406,6 +367,13 @@ int Particle :: getCorner(bool choice1, int choice2){
 			return y + h/2;
 		}
 	}
+}
+
+int Particle :: getNearestCorner(int c1, int c2, Particle player){
+	if (abs(abs(player.getCorner(Y, c1)) - abs(x)) <= abs(abs(player.getCorner(Y, c2)) - abs(x))){
+		return c1;
+	} 
+	return c2; 
 }
 
 int Particle :: getCollisionPoint(bool choice, int x1, int y1, int coordinate){

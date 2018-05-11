@@ -47,6 +47,7 @@ void close(){
 	SDL_DestroyWindow(gWindow);
 	gWindow = 0;
 	gRenderer = 0;
+	TTF_Quit();
 	SDL_Quit();
 }
 
