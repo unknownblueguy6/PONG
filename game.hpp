@@ -110,7 +110,7 @@ class Particle
 		bool outOfBounds();
 		
 		int getCorner(bool, int);
-		int getNearestCorner(int, int, Particle);
+		int getNearestCorner(Particle);
 		double slopeChange(int, int);
 		int getCollisionPoint(bool, int, int, int);
 		int whichPlayer();
@@ -205,51 +205,30 @@ void Particle :: reboundFromWall(){
 }
 
 void Particle :: reboundFrom(Particle player){
-	while(collisionWith(player)){
-		y -= vy;
-		x -= vx;
-	}
+	y -= vy;
+	x -= vx;
 
-	if(player.whichPlayer() == 1){
-		if (getNearestCorner(TR, BR, player) == TR){
-			if(vy < 0){
-				if (getCorner(X, BR) <= player.getCorner(X, TR) && getCorner(Y, BR) <= player.getCorner(Y, TR)){
-					
-				}
-				else{
-				
-				}
-			}
-			else{
-				
-			}
+	if(collisionWith(player)){
+		while(collisionWith(player)){
+			y += vy;
+			x += vx;
 		}
-
-		else{
-
-		}
+		int corner = getNearestCorner(player);
+		int y1 = player.getCorner(Y, corner); 
+		y1 += (corner == BL || corner == BR) ? h/2 : -h/2;
+		x = getCollisionPoint(X, x, y, y1);
+		y = y1;
 	}
 
 	else{
-		if (getNearestCorner(TL, BL, player) == TL){
-			if(vy  < 0){
-				if (getCorner(X, BL) <= player.getCorner(X, TL) && getCorner(Y, BL) <= player.getCorner(Y, TL)){
-					
-				}
-				else{
-				
-				}
-			}
-			else{
-				
-			}
-
+		int corner = getNearestCorner(player);
+		int x1 = player.getCorner(X, corner);y1 = player.getCorner(Y, corner);
+		if(corner == TR || corner == BL){
+			
 		}
-
 		else{
-
+			
 		}
-
 	}
 	
 	if(collisionWithWall()){
@@ -296,22 +275,8 @@ void Particle :: reset(){
 }
 
 bool Particle :: collisionWith(Particle player){
-	if    (getCorner(X, TL)  >= player.getCorner(X, TL) 
-		&& getCorner(X, TL)  <= player.getCorner(X, BR)
-		&& getCorner(Y, TL)  >= player.getCorner(Y, TL)
-		&& getCorner(Y, TL)  <= player.getCorner(Y, BR)) {
-		return true;
-	} 
-	if (getCorner(X, TR)  >= player.getCorner(X, TL) && getCorner(X, TR)  <= player.getCorner(X, BR) && getCorner(Y, TR)  >= player.getCorner(Y, TL) && getCorner(Y, TR)  <= player.getCorner(Y, BR)){
-		return true;	
-	}
-	if (getCorner(X, BL)  >= player.getCorner(X, TL) && getCorner(X, BL)  <= player.getCorner(X, BR) && getCorner(Y, BL)  >= player.getCorner(Y, TL) && getCorner(Y, BL)  <= player.getCorner(Y, BR)){
-		return true;
-	}
-	if (getCorner(X, BR)  >= player.getCorner(X, TL) && getCorner(X, BR)  <= player.getCorner(X, BR) && getCorner(Y, BR)  >= player.getCorner(Y, TL) && getCorner(Y, BR)  <= player.getCorner(Y, BR)){
-		return true;
-	}
-	return false;
+	return ((x >= player.getCorner(X, TL) - w/2 && x <= player.getCorner(X, TR) + w/2) &&
+			(y >= player.getCorner(Y, TL) - h/2 && y <= player.getCorner(Y, TR) + h/2));
 }
 
 bool Particle :: collisionWithWall(){
@@ -322,20 +287,9 @@ bool Particle :: outOfBounds(){
 	return (x + w/2 <= 0 || x  - w/2 >= (int)(SCREEN_WIDTH));
 }
 
-double Particle :: slopeChange(int x1, int y1){
+double Particle :: slopeDiff(int x1, int y1){
 	float m1 = (float)((float)(y - y1)/(float)(x - x1));
-	int y_copy = y;
-	int x_copy = x;
-	y -= vy;
-	x -= vx;
-	if(x - x1 == 0){
-		y -= vy;
-		x -= vx;
-	}
-	float m2 = (float)((float)(y - y1)/float((x - x1)));
-	if((x1 - x_copy)*(x1 - x) < 0){
-		return m2-m1;
-	}
+	float m2 = (float)((float)(vy)/(float)(vx));
 	return m1 - m2; 
 }
 int Particle :: getCorner(bool choice1, int choice2){
@@ -369,7 +323,17 @@ int Particle :: getCorner(bool choice1, int choice2){
 	}
 }
 
-int Particle :: getNearestCorner(int c1, int c2, Particle player){
+int Particle :: getNearestCorner(Particle player){
+	int c1, c2;
+	if(player.whichPlayer() == 1){
+		c1 = TR;
+		c2 = BR;
+	}
+	else{
+		c1 = TL;
+		c2 = BL;
+	}
+	
 	if (abs(abs(player.getCorner(Y, c1)) - abs(x)) <= abs(abs(player.getCorner(Y, c2)) - abs(x))){
 		return c1;
 	} 
