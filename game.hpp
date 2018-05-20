@@ -1,32 +1,7 @@
 #pragma once
 #include "gui.hpp"
+#include "attributes.hpp" 
 #include <cmath>
-const int SCREEN_FPS = 60;
-const int SCREEN_TICK_PER_FRAME = 1000 / SCREEN_FPS;
-
-//Change base attributes here.
-const int PLAYER_ONE_VEL_X = 0;
-const int PLAYER_ONE_VEL_Y = 10;
-const int PLAYER_ONE_WIDTH = SCREEN_WIDTH/30;
-const int PLAYER_ONE_HEIGHT = SCREEN_HEIGHT/5;
-const int PLAYER_ONE_POS_X = 10 + PLAYER_ONE_WIDTH/2;
-const int PLAYER_ONE_POS_Y = SCREEN_HEIGHT/2 - SCREEN_HEIGHT/5 + PLAYER_ONE_HEIGHT/2;
-
-const int PLAYER_TWO_VEL_X = 0;
-const int PLAYER_TWO_VEL_Y = 10;
-const int PLAYER_TWO_WIDTH = SCREEN_WIDTH/30;
-const int PLAYER_TWO_HEIGHT = SCREEN_HEIGHT/5;
-const int PLAYER_TWO_POS_X = SCREEN_WIDTH - 10 - SCREEN_WIDTH/30 + PLAYER_TWO_WIDTH/2;
-const int PLAYER_TWO_POS_Y = SCREEN_HEIGHT/2 - SCREEN_HEIGHT/5 + PLAYER_TWO_HEIGHT/2;
-
-const unsigned BALL_MAX_VEL_Y = 15;
-const unsigned BALL_MIN_VEL_Y = 1;
-const int BALL_VEL_X = 5;
-const int BALL_VEL_Y = 10;
-const int BALL_WIDTH = 15;
-const int BALL_HEIGHT = 15; 
-const int BALL_POS_X = SCREEN_WIDTH/2;
-const int BALL_POS_Y = SCREEN_HEIGHT/2; 
 
 //*******************************************************************************************//
 class FPS_Timer
@@ -97,7 +72,7 @@ class Particle
 {
 	public:
 	//Member functions	
-		Particle(int, int, int, int, int, int);
+		Particle();
 		void move();
 		void renderToScreen();
 		void changeVel(int, int);
@@ -115,7 +90,8 @@ class Particle
 		int getCollisionPoint(bool, int, int, int);
 		int whichPlayer();
 
-	//Data members 	
+	//Data members
+	static int count; 	
 	int score = 0;
 	int vx; //velocity along x-axis
 	int vy; //velocity along y-axis
@@ -126,21 +102,40 @@ class Particle
 		int h; //height of particle
 };
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int Particle :: count = 0;
 
-Particle PLAYERONE(PLAYER_ONE_VEL_X, PLAYER_ONE_VEL_Y, PLAYER_ONE_POS_X, PLAYER_ONE_POS_Y, PLAYER_ONE_WIDTH, PLAYER_ONE_HEIGHT);
-Particle PLAYERTWO(PLAYER_TWO_VEL_X, PLAYER_TWO_VEL_Y, PLAYER_TWO_POS_X, PLAYER_TWO_POS_Y, PLAYER_TWO_WIDTH, PLAYER_TWO_HEIGHT);
-Particle BALL(BALL_VEL_X, BALL_VEL_Y, BALL_POS_X, BALL_POS_Y, BALL_WIDTH, BALL_HEIGHT);
+Particle PLAYERONE;
+Particle PLAYERTWO;
+Particle BALL;
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-Particle :: Particle(int a, int b, int c, int d, int e, int f){
-	vx = a;
-	vy = b;
-	x = c;
-	y = d;
-	w = e;
-	h = f;	
+Particle :: Particle(){
+	readValues();
+	if(count == 0){
+		vx = PLAYER_ONE_VEL_X;
+		vy = PLAYER_ONE_VEL_Y;
+		x = PLAYER_ONE_POS_X;
+		y = PLAYER_ONE_POS_Y; 
+		w = PLAYER_ONE_WIDTH;
+		h = PLAYER_ONE_HEIGHT;
+		++count;
+	}
+	else if(count == 1){
+		vx = PLAYER_TWO_VEL_X;
+		vy = PLAYER_TWO_VEL_Y;
+		x = PLAYER_TWO_POS_X;
+		y = PLAYER_TWO_POS_Y; 
+		w = PLAYER_TWO_WIDTH;
+		h = PLAYER_TWO_HEIGHT;
+		++count;
+	}
+	else{
+		vx = BALL_VEL_X;
+		vy = BALL_VEL_Y;
+		x = BALL_POS_X;
+		y = BALL_POS_Y; 
+		w = BALL_WIDTH;
+		h = BALL_HEIGHT;
+	}
 }
 
 void Particle :: move(){
@@ -188,8 +183,8 @@ void Particle :: move(){
 void Particle :: changeVel(int vel, int dir){
 	//dir = 1 does not change direction, dir = -1 changes direction
 	int initialDir = std :: abs(vy)/vy;
-	if (std :: abs(vel) > BALL_MAX_VEL_Y) vy = dir * initialDir * BALL_MAX_VEL_Y;
-	else if (std :: abs(vel) < BALL_MIN_VEL_Y) vy = dir * initialDir * BALL_MIN_VEL_Y;
+	if (std :: abs(vel) > abs(BALL_MAX_VEL_Y)) vy = dir * initialDir * abs(BALL_MAX_VEL_Y);
+	else if (std :: abs(vel) < abs(BALL_MIN_VEL_Y)) vy = dir * initialDir * abs(BALL_MIN_VEL_Y);
 	else vy = dir * initialDir * std::abs(vel);
 }
 

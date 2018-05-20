@@ -28,6 +28,7 @@ void runGame(){
 		PLAYERONE.move();
 		PLAYERTWO.move();
 		
+		
 		BALL.move();
 
 		if(BALL.collisionWithWall()){

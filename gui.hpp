@@ -9,7 +9,7 @@
 #include <SDL2/SDL_ttf.h>
 #endif
 
-#include <string>
+#include <string> 
 
 const unsigned SCREEN_WIDTH = 640;
 const unsigned SCREEN_HEIGHT = 480;
