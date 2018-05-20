@@ -1,7 +1,18 @@
 #include "game.hpp"
+
+void runGame();
+
 int main(int argc, char* argv[]){
 	init();
 
+	runGame();
+
+	close();
+
+	return 0;
+}
+
+void runGame(){
 	FPS_Timer capTimer;
 
 	newGame();
@@ -13,9 +24,6 @@ int main(int argc, char* argv[]){
 		if(quit()){
 			break;
 		}
-
-		const Uint8* keyStates = SDL_GetKeyboardState( NULL );
-
 
 		PLAYERONE.move();
 		PLAYERTWO.move();
@@ -45,8 +53,4 @@ int main(int argc, char* argv[]){
 
 		capTimer.capFPS();
 	}
-
-	close();
-
-	return 0;
 }

@@ -144,6 +144,7 @@ Particle :: Particle(int a, int b, int c, int d, int e, int f){
 }
 
 void Particle :: move(){
+	const Uint8* keyStates = SDL_GetKeyboardState(NULL);
 	if(whichPlayer() == -1){
 		x += vx;
 		y += vy;
@@ -212,10 +213,15 @@ void Particle :: reboundFromWall(){
 }
 
 void Particle :: reboundFrom(Particle player){
-	if(keyStates[SDL_SCANCODE_W] && player.whichPlayer() == 1) player.vy = -PLAYER_ONE_VEL_Y;
-	else if(keyStates[SDL_SCANCODE_S] && player.whichPlayer() == 1) player.vy = PLAYER_ONE_VEL_Y;
-	else if(keyStates[SDL_SCANCODE_UP] && player.whichPlayer() == 2) player.vy = -PLAYER_TWO_VEL_Y;
-	else if(keyStates[SDL_SCANCODE_S] && player.whichPlayer() == 2) player.vy = PLAYER_TWO_VEL_Y;
+	const Uint8* keyStates = SDL_GetKeyboardState(NULL);
+	if(keyStates[SDL_SCANCODE_W] && player.whichPlayer() == 1 && player.y != player.h/2) 
+		player.vy = -PLAYER_ONE_VEL_Y;
+	else if(keyStates[SDL_SCANCODE_S] && player.whichPlayer() == 1 && player.y != SCREEN_HEIGHT - player.h/2) 
+		player.vy = PLAYER_ONE_VEL_Y;
+	else if(keyStates[SDL_SCANCODE_UP] && player.whichPlayer() == 2 && player.y != player.h/2) 
+		player.vy = -PLAYER_TWO_VEL_Y;
+	else if(keyStates[SDL_SCANCODE_DOWN] && player.whichPlayer() == 2 && player.y != SCREEN_HEIGHT - player.h/2)
+		player.vy = PLAYER_TWO_VEL_Y;
 	
 	y -= vy;
 	x -= vx;
@@ -413,9 +419,9 @@ void renderAll(){
 		PLAYERTWO.renderToScreen();
 		BALL.renderToScreen();
 
-		renderText(std::to_string(PLAYERONE.score) + " " + std::to_string(PLAYERTWO.score), SCREEN_WIDTH/2, 45, 0xFF, 0xFF, 0xFF);
+		renderText(std::to_string(PLAYERONE.score) + " " + std::to_string(PLAYERTWO.score), 100, SCREEN_WIDTH/2, 45);
 
-		render();
+		SDL_RenderPresent(gRenderer);
 }
 
 //*******************************************************************************************//
