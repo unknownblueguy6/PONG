@@ -1,18 +1,36 @@
 #include "game.hpp"
 
-void runGame();
+void runGameWithHumans();
+
+int gameMode = ON_MENU;  
 
 int main(int argc, char* argv[]){
 	init();
 
-	runGame();
+	while(!quit() && !QUIT_GAME){
+		switch(gameMode){
+			case ON_MENU:
+				gameMode = menu();
+				break;
+			case VS_COMP:
+				clearScreen();
+				renderText("Coming Soon", 100, SCREEN_WIDTH/2, 250);
+				SDL_RenderPresent(gRenderer);
+				SDL_Delay(1000);
+				gameMode = ON_MENU;
+				break;
+			case VS_HUMAN:
+				runGameWithHumans();
+				break;
+		}
+	}
 
 	close();
 
 	return 0;
 }
 
-void runGame(){
+void runGameWithHumans(){
 	FPS_Timer capTimer;
 
 	newGame();
@@ -22,6 +40,7 @@ void runGame(){
 		capTimer.start();
 		
 		if(quit()){
+			QUIT_GAME = true;
 			break;
 		}
 
