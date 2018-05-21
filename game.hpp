@@ -1,6 +1,7 @@
 #pragma once
 #include "gui.hpp"
-#include "attributes.hpp" 
+#include "attributes.hpp"
+#include <iostream> 
 #include <cmath>
 
 //*******************************************************************************************//
@@ -255,7 +256,12 @@ void Particle :: reboundFrom(Particle player){
 		y1 += (corner == BL || corner == BR) ? h/2 : -h/2;
 		x = getCollisionPoint(X, x, y, y1);
 		y = y1;
-		changeVel(vy - player.vy, 1);
+		
+		if((corner == BR || corner == BL && vy < 0) || 
+			(corner == TR || corner == TL && vy > 0)) changeVel(vy - player.vy, -1);
+		else{
+			changeVel(vy - player.vy, 1);
+		}
 		if(((corner == BR || corner == TR) && vx < 0 && getCorner(X, TL) >= player.x) ||
 			((corner == BL || corner == TL) && vx > 0 && getCorner(X, TR) <= player.x))
 			vx *= -1;
@@ -311,10 +317,10 @@ void Particle :: reboundFrom(Particle player){
 		}
 		if(collisionWith(player)){
 			if(vx > 0){
-				x = player.getCorner(X, BR) + w/2;
+				x = player.getCorner(X, BR) + w/2 + 1;
 			}
 			else{
-				x = player.getCorner(X, BL) - w/2;
+				x = player.getCorner(X, BL) - w/2 - 1;
 			}
 		}
 	}
