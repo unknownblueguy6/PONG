@@ -1,6 +1,7 @@
 #pragma once
 #include "gui.hpp"
-#include "attributes.hpp" 
+#include "attributes.hpp"
+#include <iostream> 
 #include <cmath>
 
 //*******************************************************************************************//
@@ -96,6 +97,7 @@ class Particle
 	int vx; //velocity along x-axis
 	int vy; //velocity along y-axis
 	private:
+		int ay; //acceleration along y - axis 
 		int x; //x coordinate of centre 
 		int y; //y coordinates of centre
 		int w; //width of particle
@@ -111,8 +113,9 @@ Particle BALL;
 Particle :: Particle(){
 	readValues();
 	if(count == 0){
-		vx = PLAYER_ONE_VEL_X;
-		vy = PLAYER_ONE_VEL_Y;
+		vx = 0;
+		vy = 0;
+		ay = PLAYER_ONE_ACC_Y;
 		x = PLAYER_ONE_POS_X;
 		y = PLAYER_ONE_POS_Y; 
 		w = PLAYER_ONE_WIDTH;
@@ -120,8 +123,9 @@ Particle :: Particle(){
 		++count;
 	}
 	else if(count == 1){
-		vx = PLAYER_TWO_VEL_X;
-		vy = PLAYER_TWO_VEL_Y;
+		vx = 0;
+		vy = 0;
+		ay = PLAYER_TWO_ACC_Y;
 		x = PLAYER_TWO_POS_X;
 		y = PLAYER_TWO_POS_Y; 
 		w = PLAYER_TWO_WIDTH;
@@ -140,7 +144,8 @@ Particle :: Particle(){
 
 void Particle :: move(){
 	const Uint8* keyStates = SDL_GetKeyboardState(NULL);
-	if(whichPlayer() == -1){
+	
+		if(whichPlayer() == -1){
 		x += vx;
 		y += vy;
 	}
@@ -148,35 +153,69 @@ void Particle :: move(){
 
 	else if(whichPlayer() == 1){
 		if(keyStates[SDL_SCANCODE_W]){
-			vy = -PLAYER_ONE_VEL_Y;
+			vy -= ay;
+			if(std :: abs(vy) > PLAYER_ONE_MAX_VEL_Y) vy = -PLAYER_ONE_MAX_VEL_Y;
 			x += vx;
 			y += vy;
-			if(y  - h/2 < 0) y = h/2;
+			if(y  - h/2 < 0) {
+				y = h/2;
+				vy = 0;
+			}
 		}
-		if(keyStates[SDL_SCANCODE_S]){
-			vy = PLAYER_ONE_VEL_Y;
+		else if(keyStates[SDL_SCANCODE_S]){
+			vy += ay;
+			if(std :: abs(vy) > PLAYER_ONE_MAX_VEL_Y) vy = +PLAYER_ONE_MAX_VEL_Y;
 			x += vx;
 			y += vy;
-			if (y + h/2 > SCREEN_HEIGHT) y = SCREEN_HEIGHT - h/2;
+			if (y + h/2 > SCREEN_HEIGHT){
+				y = SCREEN_HEIGHT - h/2;
+				vy = 0;
+			}
 		}
-		vy = 0;
+		else{
+			if (vy > 0){
+				vy -= ay;
+				if(vy < PLAYER_ONE_MIN_VEL_Y) vy = PLAYER_ONE_MIN_VEL_Y;
+			}	
+			else{
+				vy += ay;
+				if(vy > PLAYER_ONE_MIN_VEL_Y) vy = PLAYER_ONE_MIN_VEL_Y;
+			}
+		}
 	}
 
 
 	else if(whichPlayer() == 2){
 		if(keyStates[SDL_SCANCODE_UP]){
-			vy = -PLAYER_TWO_VEL_Y;
+			vy -= ay;
+			if(std :: abs(vy) > PLAYER_TWO_MAX_VEL_Y) vy = -PLAYER_TWO_MAX_VEL_Y;
 			x += vx;
 			y += vy;
-			if(y  - h/2 < 0) y = h/2;
+			if(y  - h/2 < 0) {
+				y = h/2;
+				vy = 0;
+			}
 		}
-		if(keyStates[SDL_SCANCODE_DOWN]){
-			vy = PLAYER_TWO_VEL_Y;
+		else if(keyStates[SDL_SCANCODE_DOWN]){
+			vy += ay;
+			if(std :: abs(vy) > PLAYER_TWO_MAX_VEL_Y) vy = +PLAYER_TWO_MAX_VEL_Y;
 			x += vx;
 			y += vy;
-			if (y + h/2 > SCREEN_HEIGHT) y = SCREEN_HEIGHT - h/2;
+			if (y + h/2 > SCREEN_HEIGHT){
+				y = SCREEN_HEIGHT - h/2;
+				vy = 0;
+			}
 		}
-		vy = 0;
+		else{
+			if (vy > 0){
+				vy -= ay;
+				if(vy < PLAYER_TWO_MIN_VEL_Y) vy = PLAYER_TWO_MIN_VEL_Y;
+			}	
+			else{
+				vy += ay;
+				if(vy > PLAYER_TWO_MIN_VEL_Y) vy = PLAYER_TWO_MIN_VEL_Y;
+			}
+		}
 	}
 }
 
@@ -208,16 +247,6 @@ void Particle :: reboundFromWall(){
 }
 
 void Particle :: reboundFrom(Particle player){
-	const Uint8* keyStates = SDL_GetKeyboardState(NULL);
-	if(keyStates[SDL_SCANCODE_W] && player.whichPlayer() == 1 && player.y != player.h/2) 
-		player.vy = -PLAYER_ONE_VEL_Y;
-	else if(keyStates[SDL_SCANCODE_S] && player.whichPlayer() == 1 && player.y != SCREEN_HEIGHT - player.h/2) 
-		player.vy = PLAYER_ONE_VEL_Y;
-	else if(keyStates[SDL_SCANCODE_UP] && player.whichPlayer() == 2 && player.y != player.h/2) 
-		player.vy = -PLAYER_TWO_VEL_Y;
-	else if(keyStates[SDL_SCANCODE_DOWN] && player.whichPlayer() == 2 && player.y != SCREEN_HEIGHT - player.h/2)
-		player.vy = PLAYER_TWO_VEL_Y;
-	
 	y -= vy;
 	x -= vx;
 	
@@ -227,7 +256,12 @@ void Particle :: reboundFrom(Particle player){
 		y1 += (corner == BL || corner == BR) ? h/2 : -h/2;
 		x = getCollisionPoint(X, x, y, y1);
 		y = y1;
-		changeVel(vy - player.vy, 1);
+		
+		if((corner == BR || corner == BL && vy < 0) || 
+			(corner == TR || corner == TL && vy > 0)) changeVel(vy - player.vy, -1);
+		else{
+			changeVel(vy - player.vy, 1);
+		}
 		if(((corner == BR || corner == TR) && vx < 0 && getCorner(X, TL) >= player.x) ||
 			((corner == BL || corner == TL) && vx > 0 && getCorner(X, TR) <= player.x))
 			vx *= -1;
@@ -283,10 +317,10 @@ void Particle :: reboundFrom(Particle player){
 		}
 		if(collisionWith(player)){
 			if(vx > 0){
-				x = player.getCorner(X, BR) + w/2;
+				x = player.getCorner(X, BR) + w/2 + 1;
 			}
 			else{
-				x = player.getCorner(X, BL) - w/2;
+				x = player.getCorner(X, BL) - w/2 - 1;
 			}
 		}
 	}
