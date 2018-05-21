@@ -153,20 +153,20 @@ void Particle :: move(){
 
 	else if(whichPlayer() == 1){
 		if(keyStates[SDL_SCANCODE_W]){
-			x += vx;
-			y += vy;
 			vy -= ay;
 			if(std :: abs(vy) > PLAYER_ONE_MAX_VEL_Y) vy = -PLAYER_ONE_MAX_VEL_Y;
+			x += vx;
+			y += vy;
 			if(y  - h/2 < 0) {
 				y = h/2;
 				vy = 0;
 			}
 		}
 		else if(keyStates[SDL_SCANCODE_S]){
-			x += vx;
-			y += vy;
 			vy += ay;
 			if(std :: abs(vy) > PLAYER_ONE_MAX_VEL_Y) vy = +PLAYER_ONE_MAX_VEL_Y;
+			x += vx;
+			y += vy;
 			if (y + h/2 > SCREEN_HEIGHT){
 				y = SCREEN_HEIGHT - h/2;
 				vy = 0;
@@ -187,20 +187,20 @@ void Particle :: move(){
 
 	else if(whichPlayer() == 2){
 		if(keyStates[SDL_SCANCODE_UP]){
-			x += vx;
-			y += vy;
 			vy -= ay;
 			if(std :: abs(vy) > PLAYER_TWO_MAX_VEL_Y) vy = -PLAYER_TWO_MAX_VEL_Y;
+			x += vx;
+			y += vy;
 			if(y  - h/2 < 0) {
 				y = h/2;
 				vy = 0;
 			}
 		}
 		else if(keyStates[SDL_SCANCODE_DOWN]){
-			x += vx;
-			y += vy;
 			vy += ay;
 			if(std :: abs(vy) > PLAYER_TWO_MAX_VEL_Y) vy = +PLAYER_TWO_MAX_VEL_Y;
+			x += vx;
+			y += vy;
 			if (y + h/2 > SCREEN_HEIGHT){
 				y = SCREEN_HEIGHT - h/2;
 				vy = 0;
