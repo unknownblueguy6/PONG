@@ -14,6 +14,13 @@
 const unsigned SCREEN_WIDTH = 640;
 const unsigned SCREEN_HEIGHT = 480;
 
+bool QUIT_GAME = false;
+enum gameStates{
+	VS_COMP = 1,
+	VS_HUMAN,
+	ON_MENU
+};
+
 SDL_Window* gWindow = 0;
 
 SDL_Renderer* gRenderer = 0;
@@ -65,8 +72,30 @@ void renderText(std::string text, int size, int x, int y, int red = 0xFF, int gr
 	TTF_CloseFont(font);
 }
 
+int menu(){
+	const Uint8* keyStates = SDL_GetKeyboardState(NULL);
+	clearScreen();
+	renderText("PONG", 250, SCREEN_WIDTH/2, 125);
+	renderText("VS COMP", 75, SCREEN_WIDTH/2, 250);
+	renderText("VS PLAYER", 75, SCREEN_WIDTH/2, 325);
+	static int pos = VS_COMP;
+	int renderPos = 250;
+	
+	if(keyStates[SDL_SCANCODE_UP]) pos = VS_COMP;
+	if(keyStates[SDL_SCANCODE_DOWN]) pos = VS_HUMAN;
+	if(keyStates[SDL_SCANCODE_RETURN]) return pos;
+	
+	if (pos == VS_COMP) renderPos = 250;
+	else renderPos = 325;
+	
+	renderText(">", 100, SCREEN_WIDTH/2 - 200, renderPos + 5);
+	
+	SDL_RenderPresent(gRenderer);
+	return ON_MENU;
+}
+
 void clearScreen(){
-	SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
+	SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0x00);
 	SDL_RenderClear(gRenderer);
 }
 
