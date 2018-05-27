@@ -250,7 +250,7 @@ void Particle :: reboundFrom(Particle player){
 	x -= vx;
 
 	int corner = getNearestCorner(player);
-	int x1 = player.getCorner(X, corner)
+	int x1 = player.getCorner(X, corner);
 	int y1 = player.getCorner(Y, corner);
 	x1 += (corner == TR || corner == BR) ? w/2 : -w/2;
 	y1 += (corner == BL || corner == BR) ? h/2 : -h/2;
