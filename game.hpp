@@ -95,12 +95,12 @@ class Particle
 	int score = 0;
 	int vx; //velocity along x-axis
 	int vy; //velocity along y-axis
-	private:
-		int ay; //acceleration along y - axis 
-		int x; //x coordinate of centre 
-		int y; //y coordinates of centre
-		int w; //width of particle
-		int h; //height of particle
+	int ay; //acceleration along y - axis 
+	int x; //x coordinate of centre 
+	int y; //y coordinates of centre
+	int w; //width of particle
+	int h; //height of particle
+	bool isAI;
 };
 
 int Particle :: count = 0;
@@ -121,7 +121,7 @@ Particle :: Particle(){
 		h = PLAYER_ONE_HEIGHT;
 		++count;
 	}
-	else if(count == 1){
+	else if(count == 1 || count == 3){
 		vx = 0;
 		vy = 0;
 		ay = PLAYER_TWO_ACC_Y;
@@ -129,15 +129,17 @@ Particle :: Particle(){
 		y = PLAYER_TWO_POS_Y; 
 		w = PLAYER_TWO_WIDTH;
 		h = PLAYER_TWO_HEIGHT;
+		if(count == 3) isAI = 1;
 		++count;
 	}
-	else{
+	else if(count == 2 || count > 3){
 		vx = BALL_VEL_X;
 		vy = BALL_VEL_Y;
 		x = BALL_POS_X;
 		y = BALL_POS_Y; 
 		w = BALL_WIDTH;
 		h = BALL_HEIGHT;
+		++count;
 	}
 }
 
@@ -346,7 +348,7 @@ void Particle :: reset(){
 		x = PLAYER_ONE_POS_X;
 		y = PLAYER_ONE_POS_Y;
 	}
-	else if (whichPlayer() == 2){
+	else if (whichPlayer() == 2 || whichPlayer() == 3){
 		x = PLAYER_TWO_POS_X;
 		y = PLAYER_TWO_POS_Y;
 	}
@@ -410,8 +412,9 @@ int Particle :: getCollisionPoint(bool choice, int x1, int y1, int coordinate){
 }
 
 int Particle :: whichPlayer(){
-	if (x == PLAYER_ONE_POS_X && h == PLAYER_ONE_HEIGHT) return 1;
-	if (x == PLAYER_TWO_POS_X && h == PLAYER_TWO_HEIGHT) return 2;
+	if(x == PLAYER_ONE_POS_X && h == PLAYER_ONE_HEIGHT && !isAI) return 1;
+	if(x == PLAYER_TWO_POS_X && h == PLAYER_TWO_HEIGHT && !isAI) return 2;
+	if(isAI) return 3;
 	return -1;
 }
 
@@ -422,7 +425,7 @@ int Particle :: whichPlayer(){
 void newGame();
 void updateScore();
 void renderCenterLine();
-void render();
+void renderAll();
 
 
 void newGame(){

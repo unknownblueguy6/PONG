@@ -1,8 +1,8 @@
 #include "game.hpp"
+#include "ai.hpp"
 
-void runGameWithHumans();
-
-int gameMode = ON_MENU;  
+void vsPlayer();
+void vsComp(); 
 
 int main(int argc, char* argv[]){
 	init();
@@ -13,14 +13,10 @@ int main(int argc, char* argv[]){
 				gameMode = menu();
 				break;
 			case VS_COMP:
-				clearScreen();
-				renderText("Coming Soon", 100, SCREEN_WIDTH/2, 250);
-				SDL_RenderPresent(gRenderer);
-				SDL_Delay(1000);
-				gameMode = ON_MENU;
+				vsComp();
 				break;
 			case VS_HUMAN:
-				runGameWithHumans();
+				vsPlayer();
 				break;
 		}
 	}
@@ -30,7 +26,7 @@ int main(int argc, char* argv[]){
 	return 0;
 }
 
-void runGameWithHumans(){
+void vsPlayer(){
 	FPS_Timer capTimer;
 
 	newGame();
@@ -70,6 +66,52 @@ void runGameWithHumans(){
 		}
 		
 		renderAll();
+
+		capTimer.capFPS();
+	}
+}
+
+void vsComp(){
+	FPS_Timer capTimer;
+
+	newGame(gameMode);
+
+	while(true){
+		
+		capTimer.start();
+		
+		if(quit()){
+			QUIT_GAME = true;
+			break;
+		}
+
+		PLAYERONE.move();
+		COMPUTER.getBallPosition();
+		COMPUTER.move();
+		
+		
+		BALL.move();
+
+		if(BALL.collisionWithWall()){
+			BALL.reboundFromWall();
+		}
+		
+		if(BALL.collisionWith(PLAYERONE)){
+			BALL.reboundFrom(PLAYERONE);
+		}
+		else if(BALL.collisionWith(COMPUTER.COMP)){
+			BALL.reboundFrom(COMPUTER.COMP);
+		}
+
+
+		if (BALL.outOfBounds()){
+			updateScore();
+			PLAYERONE.reset();
+			COMPUTER.COMP.reset();
+			BALL.reset();
+		}
+		
+		renderAll(gameMode);
 
 		capTimer.capFPS();
 	}

@@ -21,6 +21,8 @@ enum gameStates{
 	ON_MENU
 };
 
+int gameMode = ON_MENU; 
+
 SDL_Window* gWindow = 0;
 
 SDL_Renderer* gRenderer = 0;
