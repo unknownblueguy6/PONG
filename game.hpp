@@ -1,7 +1,6 @@
 #pragma once
 #include "gui.hpp"
 #include "attributes.hpp"
-#include <iostream> 
 #include <cmath>
 
 //*******************************************************************************************//
@@ -249,31 +248,33 @@ void Particle :: reboundFromWall(){
 void Particle :: reboundFrom(Particle player){
 	y -= vy;
 	x -= vx;
+
+	int corner = getNearestCorner(player);
+	int x1 = player.getCorner(X, corner)
+	int y1 = player.getCorner(Y, corner);
+	x1 += (corner == TR || corner == BR) ? w/2 : -w/2;
+	y1 += (corner == BL || corner == BR) ? h/2 : -h/2;
 	
-	if(collisionWith(player)){
-		int corner = getNearestCorner(player);
-		int y1 = player.getCorner(Y, corner); 
-		y1 += (corner == BL || corner == BR) ? h/2 : -h/2;
+	if(collisionWith(player)){ 
 		x = getCollisionPoint(X, x, y, y1);
 		y = y1;
 		
+		if(!collisionWith(player)){
+			y = getCollisionPoint(Y, x, y, x1);
+			x = x1;
+		}
+		
 		if((corner == BR || corner == BL && vy < 0) || 
 			(corner == TR || corner == TL && vy > 0)) changeVel(vy - player.vy, -1);
-		else{
-			changeVel(vy - player.vy, 1);
-		}
+		
+		else changeVel(vy - player.vy, 1);
+		
 		if(((corner == BR || corner == TR) && vx < 0 && getCorner(X, TL) >= player.x) ||
 			((corner == BL || corner == TL) && vx > 0 && getCorner(X, TR) <= player.x))
 			vx *= -1;
 	}
 
 	else{
-		int corner = getNearestCorner(player);
-		int x1 = player.getCorner(X, corner), y1 = player.getCorner(Y, corner);
-
-		x1 += (corner == TR || corner == BR) ? w/2 : -w/2;
-		y1 += (corner == BL || corner == BR) ? h/2 : -h/2;
-		
 		if(((corner == TL || corner == TR) && y < y1) ||
 			((corner == BL || corner == BR) && y > y1)){
 			
@@ -420,6 +421,7 @@ int Particle :: whichPlayer(){
 
 void newGame();
 void updateScore();
+void renderCenterLine();
 void render();
 
 
@@ -441,12 +443,23 @@ void updateScore(){
 
 }
 
+void renderCenterLine(){
+	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+	for(int ypos = 0; ypos < SCREEN_HEIGHT; ypos += 18){
+		SDL_Rect particleRect = {SCREEN_WIDTH/2 - 3, ypos, 6, 12};
+		SDL_RenderFillRect( gRenderer,&particleRect);	
+	}
+	
+}
+
 void renderAll(){
 		clearScreen();
 
 		PLAYERONE.renderToScreen();
 		PLAYERTWO.renderToScreen();
 		BALL.renderToScreen();
+
+		renderCenterLine();
 
 		renderText(std::to_string(PLAYERONE.score) + " " + std::to_string(PLAYERTWO.score), 100, SCREEN_WIDTH/2, 45);
 
