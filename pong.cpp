@@ -1,8 +1,6 @@
 #include "game.hpp"
-#include "ai.hpp"
 
-void vsPlayer();
-void vsComp(); 
+void runGame();
 
 int main(int argc, char* argv[]){
 	init();
@@ -13,10 +11,8 @@ int main(int argc, char* argv[]){
 				gameMode = menu();
 				break;
 			case VS_COMP:
-				vsComp();
-				break;
 			case VS_HUMAN:
-				vsPlayer();
+				runGame();
 				break;
 		}
 	}
@@ -26,7 +22,7 @@ int main(int argc, char* argv[]){
 	return 0;
 }
 
-void vsPlayer(){
+void runGame(){
 	FPS_Timer capTimer;
 
 	newGame();
@@ -41,7 +37,14 @@ void vsPlayer(){
 		}
 
 		PLAYERONE.move();
-		PLAYERTWO.move();
+		
+		if(gameMode == VS_HUMAN){
+			PLAYERTWO.move();
+		}
+		else{
+			COMPUTER.getBallPosition();
+			COMPUTER.move();
+		}
 		
 		
 		BALL.move();
@@ -53,65 +56,27 @@ void vsPlayer(){
 		if(BALL.collisionWith(PLAYERONE)){
 			BALL.reboundFrom(PLAYERONE);
 		}
-		else if(BALL.collisionWith(PLAYERTWO)){
-			BALL.reboundFrom(PLAYERTWO);
+		else if(gameMode == VS_HUMAN && BALL.collisionWith(PLAYERTWO)){
+				BALL.reboundFrom(PLAYERTWO);
+		}
+		else if (gameMode == VS_COMP && BALL.collisionWith(COMPUTER.COMP)){
+				BALL.reboundFrom(COMPUTER.COMP);
 		}
 
 
 		if (BALL.outOfBounds()){
 			updateScore();
 			PLAYERONE.reset();
-			PLAYERTWO.reset();
+			if(gameMode == VS_HUMAN){
+				PLAYERTWO.reset();
+			}
+			else{
+				COMPUTER.COMP.reset();
+			}
 			BALL.reset();
 		}
 		
 		renderAll();
-
-		capTimer.capFPS();
-	}
-}
-
-void vsComp(){
-	FPS_Timer capTimer;
-
-	newGame(gameMode);
-
-	while(true){
-		
-		capTimer.start();
-		
-		if(quit()){
-			QUIT_GAME = true;
-			break;
-		}
-
-		PLAYERONE.move();
-		COMPUTER.getBallPosition();
-		COMPUTER.move();
-		
-		
-		BALL.move();
-
-		if(BALL.collisionWithWall()){
-			BALL.reboundFromWall();
-		}
-		
-		if(BALL.collisionWith(PLAYERONE)){
-			BALL.reboundFrom(PLAYERONE);
-		}
-		else if(BALL.collisionWith(COMPUTER.COMP)){
-			BALL.reboundFrom(COMPUTER.COMP);
-		}
-
-
-		if (BALL.outOfBounds()){
-			updateScore();
-			PLAYERONE.reset();
-			COMPUTER.COMP.reset();
-			BALL.reset();
-		}
-		
-		renderAll(gameMode);
 
 		capTimer.capFPS();
 	}

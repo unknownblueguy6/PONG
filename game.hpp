@@ -2,6 +2,8 @@
 #include "gui.hpp"
 #include "attributes.hpp"
 #include <cmath>
+#include <cstdlib>
+#include <ctime>
 
 //*******************************************************************************************//
 class FPS_Timer
@@ -90,17 +92,17 @@ class Particle
 		int getCollisionPoint(bool, int, int, int);
 		int whichPlayer();
 
-	//Data members
-	static int count; 	
-	int score = 0;
-	int vx; //velocity along x-axis
-	int vy; //velocity along y-axis
-	int ay; //acceleration along y - axis 
-	int x; //x coordinate of centre 
-	int y; //y coordinates of centre
-	int w; //width of particle
-	int h; //height of particle
-	bool isAI;
+		//Data members
+		static int count; 	
+		int score = 0;
+		int vx; //velocity along x-axis
+		int vy; //velocity along y-axis
+		int ay; //acceleration along y - axis 
+		int x; //x coordinate of centre 
+		int y; //y coordinates of centre
+		int w; //width of particle
+		int h; //height of particle
+		bool isAI;
 };
 
 int Particle :: count = 0;
@@ -420,6 +422,79 @@ int Particle :: whichPlayer(){
 
 //*******************************************************************************************//
 
+class AI
+{
+	public:
+		void getBallPosition();
+		void move();
+
+		Particle COMP;
+		Particle tempBALL;
+};
+
+AI COMPUTER;
+
+void AI :: getBallPosition(){
+	tempBALL = BALL;
+	//int time = 0;
+	while(tempBALL.x < COMP.x && BALL.vx > 0){
+		tempBALL.move();
+		if (tempBALL.collisionWithWall()){
+			tempBALL.reboundFromWall();
+		}
+		//++time;
+	}
+	//return time;
+}
+
+void AI :: move(){
+	//srand(time(NULL));
+	//int availableTime = timeToReachBall();
+
+	int s = tempBALL.y <= COMP.y ? tempBALL.y - COMP.getCorner(Y, TR) : tempBALL.y - COMP.getCorner(Y, BR);
+	int dir;
+	if (s != 0) dir = std::abs(s)/s;
+	else dir = 0;
+
+	// int requiredTime = (float)(((float)(-COMP.vy) + std :: sqrt((float)((COMP.vy * COMP.vy) + 2*COMP.ay*s))) / (float)(COMP.ay));
+	// if (requiredTime < 0) requiredTime = (float)(((float)(-COMP.vy) - std :: sqrt((float)((COMP.vy * COMP.vy) + 2*COMP.ay*s))) / (float)(COMP.ay));
+	
+	//int chance  = rand() % 100 + 1;
+	// static bool flag = false;
+
+	// if(tempBALL.collisionWith(COMP) && !flag){
+	// 	tempBALL.reboundFrom(COMP);
+	// 	if(tempBALL.vx > 0){
+	// 		flag = true;
+	// 	}
+	// }
+	
+	if ((!tempBALL.collisionWith(COMP)) && BALL.vx > 0 && dir != 0){
+		COMP.vy += dir * COMP.ay;
+		if(std :: abs(COMP.vy) > PLAYER_TWO_MAX_VEL_Y) COMP.vy = dir * PLAYER_TWO_MAX_VEL_Y;
+		COMP.y += COMP.vy;
+		if(COMP.y  - COMP.h/2 < 0) {
+			COMP.y = COMP.h/2;
+			COMP.vy = 0;
+		}
+		if (COMP.y + COMP.h/2 > SCREEN_HEIGHT){
+			COMP.y = SCREEN_HEIGHT - COMP.h/2;
+			COMP.vy = 0;
+		}
+	}
+	else{
+		if(COMP.vy > 0){
+			COMP.vy -= COMP.ay;
+			if(COMP.vy < PLAYER_TWO_MIN_VEL_Y) COMP.vy = PLAYER_TWO_MIN_VEL_Y;
+		}	
+		else{
+			COMP.vy += COMP.ay;
+			if(COMP.vy > PLAYER_TWO_MIN_VEL_Y) COMP.vy = PLAYER_TWO_MIN_VEL_Y;
+		}
+	}
+}
+
+
 //GAME FUNCTIONS*****************************************************************************//
 
 void newGame();
@@ -432,13 +507,23 @@ void newGame(){
 	BALL.reset();
 	PLAYERONE.reset();
 	PLAYERONE.score = 0;
-	PLAYERTWO.reset();
-	PLAYERTWO.score = 0;	
+	if(gameMode == VS_HUMAN){
+		PLAYERTWO.reset();
+		PLAYERTWO.score = 0;
+	}
+	else{
+		COMPUTER.COMP.reset();
+		COMPUTER.COMP.score = 0;
+	}	
 }
 
 void updateScore(){
 	if(BALL.vx < 0){
-		++PLAYERTWO.score;
+		if(gameMode == VS_HUMAN)
+			++PLAYERTWO.score;
+		else{
+			++COMPUTER.COMP.score;
+		}
 	}
 	else if(BALL.vx > 0){
 		++PLAYERONE.score;
@@ -457,14 +542,24 @@ void renderCenterLine(){
 
 void renderAll(){
 		clearScreen();
-
+		std::string scoreText;
+		
 		PLAYERONE.renderToScreen();
-		PLAYERTWO.renderToScreen();
+		
+		if(gameMode == VS_HUMAN){
+			PLAYERTWO.renderToScreen();
+			scoreText  = std::to_string(PLAYERONE.score) + " " + std::to_string(PLAYERTWO.score);
+		}
+		else{
+			COMPUTER.COMP.renderToScreen();
+			scoreText  = std::to_string(PLAYERONE.score) + " " + std::to_string(COMPUTER.COMP.score);
+		}
+		
 		BALL.renderToScreen();
 
 		renderCenterLine();
 
-		renderText(std::to_string(PLAYERONE.score) + " " + std::to_string(PLAYERTWO.score), 100, SCREEN_WIDTH/2, 45);
+		renderText(scoreText, 100, SCREEN_WIDTH/2, 45);
 
 		SDL_RenderPresent(gRenderer);
 }
