@@ -1,14 +1,13 @@
 #pragma once
 #include "gui.hpp"
 #include "attributes.hpp"
+#include <iostream>
 #include <cmath>
-#include <cstdlib>
-#include <ctime>
 
 //*******************************************************************************************//
 class FPS_Timer
 {
-    public:
+	public:
 		//Initializes variables
 		FPS_Timer();
 
@@ -19,21 +18,21 @@ class FPS_Timer
 		//Gets the timer's time
 		Uint32 getTicks();
 
-    private:
+	private:
 		//The clock time when the timer started
 		Uint32 mStartTicks;
 };
 
 FPS_Timer::FPS_Timer()
 {
-    //Initialize the variables
-    mStartTicks = 0;
+	//Initialize the variables
+	mStartTicks = 0;
 }
 
 void FPS_Timer::start()
 {
-    //Get the current clock time
-    mStartTicks = SDL_GetTicks();
+	//Get the current clock time
+	mStartTicks = SDL_GetTicks();
 }
 
 void FPS_Timer :: capFPS(){
@@ -48,9 +47,9 @@ Uint32 FPS_Timer::getTicks()
 	//The actual timer time
 	Uint32 time = 0;
 
-    time = SDL_GetTicks() - mStartTicks;
+	time = SDL_GetTicks() - mStartTicks;
 
-    return time;
+	return time;
 }
 
 //*******************************************************************************************//
@@ -296,7 +295,7 @@ void Particle :: reboundFrom(Particle player){
 				y = y1;
 				changeVel(vy - player.vy, -1);
 				if ((vx < 0 && getCorner(X, TL) >= player.x) || 
- 					(vx > 0 && getCorner(X, TR) <= player.x)) vx *= -1;	
+					(vx > 0 && getCorner(X, TR) <= player.x)) vx *= -1;	
 			}
 			else{
 				x = x1, y = y1;
@@ -422,12 +421,30 @@ int Particle :: whichPlayer(){
 
 //*******************************************************************************************//
 
+// AI code //
+
+enum decisions{
+	REACH_POSITION_BEFORE_BALL = 1,
+	REACH_BALL_IN_REQUIRED_TIME,
+	CLOSE_MISS,
+	NORMAL_MISS,
+	TERRIBLE_MISS
+};
+
 class AI
 {
 	public:
 		void getBallPosition();
-		void move();
+		void makeDecision();
+		void getRequiredTime();
+		void move(int);
+		void takeAction();
 
+		int decision;
+		int availableTime;
+		int requiredTime;
+		int distance;
+		int direction;
 		Particle COMP;
 		Particle tempBALL;
 };
@@ -436,53 +453,163 @@ AI COMPUTER;
 
 void AI :: getBallPosition(){
 	tempBALL = BALL;
-	//int time = 0;
+	int time = 0;
 	while(tempBALL.x < COMP.x && BALL.vx > 0){
 		tempBALL.move();
 		if (tempBALL.collisionWithWall()){
 			tempBALL.reboundFromWall();
 		}
-		//++time;
+		++time;
 	}
-	//return time;
+	availableTime = time;
+
+	distance = tempBALL.y <= COMP.y ? tempBALL.y - COMP.getCorner(Y, TR) : tempBALL.y - COMP.getCorner(Y, BR);
+	if (distance != 0) direction = std::abs(distance)/distance;
+	else direction = 0;
+
 }
 
-void AI :: move(){
-	//srand(time(NULL));
-	//int availableTime = timeToReachBall();
+void AI :: makeDecision(){
+	//not really making decisions, just a simple RNG
+	std::uniform_int_distribution<std::mt19937::result_type> dist100(1,100);
 
-	int s = tempBALL.y <= COMP.y ? tempBALL.y - COMP.getCorner(Y, TR) : tempBALL.y - COMP.getCorner(Y, BR);
-	int dir;
-	if (s != 0) dir = std::abs(s)/s;
-	else dir = 0;
+	int chance = dist100(rng);
 
-	// int requiredTime = (float)(((float)(-COMP.vy) + std :: sqrt((float)((COMP.vy * COMP.vy) + 2*COMP.ay*s))) / (float)(COMP.ay));
-	// if (requiredTime < 0) requiredTime = (float)(((float)(-COMP.vy) - std :: sqrt((float)((COMP.vy * COMP.vy) + 2*COMP.ay*s))) / (float)(COMP.ay));
-	
-	//int chance  = rand() % 100 + 1;
-	// static bool flag = false;
-
-	// if(tempBALL.collisionWith(COMP) && !flag){
-	// 	tempBALL.reboundFrom(COMP);
-	// 	if(tempBALL.vx > 0){
-	// 		flag = true;
-	// 	}
-	// }
-	
-	if ((!tempBALL.collisionWith(COMP)) && BALL.vx > 0 && dir != 0){
-		COMP.vy += dir * COMP.ay;
-		if(std :: abs(COMP.vy) > PLAYER_TWO_MAX_VEL_Y) COMP.vy = dir * PLAYER_TWO_MAX_VEL_Y;
-		COMP.y += COMP.vy;
-		if(COMP.y  - COMP.h/2 < 0) {
-			COMP.y = COMP.h/2;
-			COMP.vy = 0;
-		}
-		if (COMP.y + COMP.h/2 > SCREEN_HEIGHT){
-			COMP.y = SCREEN_HEIGHT - COMP.h/2;
-			COMP.vy = 0;
-		}
+	if(chance <= 80){ //hit the ball
+		if(chance <= 24) decision = REACH_POSITION_BEFORE_BALL;
+		else decision = REACH_BALL_IN_REQUIRED_TIME;
 	}
-	else{
+	else{//miss the ball
+		if(chance <= 98) decision = CLOSE_MISS;
+		else if(decision <= 99) decision = NORMAL_MISS;
+		else decision = TERRIBLE_MISS;
+	}
+
+}
+
+
+void AI :: move(int dir){
+	COMP.vy += dir * COMP.ay;
+	if(std :: abs(COMP.vy) > PLAYER_TWO_MAX_VEL_Y) COMP.vy = dir * PLAYER_TWO_MAX_VEL_Y;
+	COMP.y += COMP.vy;
+	if(COMP.y  - COMP.h/2 < 0) {
+		COMP.y = COMP.h/2;
+		COMP.vy = 0;
+	}
+	if (COMP.y + COMP.h/2 > SCREEN_HEIGHT){
+		COMP.y = SCREEN_HEIGHT - COMP.h/2;
+		COMP.vy = 0;
+	}
+
+}
+
+void AI :: getRequiredTime(){
+	double root1 = (double)(((double)(-COMP.vy) + std :: pow((COMP.vy * COMP.vy + 2 * direction * COMP.ay * distance), 0.5)) / COMP.ay);
+	double root2 = (double)(((double)(-COMP.vy) - std :: pow((COMP.vy * COMP.vy + 2 * direction * COMP.ay * distance), 0.5)) / COMP.ay);
+	
+	if(root1 >= 0 && root2 >= 0) requiredTime = root1 > root2 ? root2 : root1;
+	
+	else if(root1 < 0 && root2 >= 0) requiredTime = root2;
+
+	else if(root1 >= 0 && root2 < 0) requiredTime = root1;
+
+}
+void AI :: takeAction(){
+	distance = tempBALL.y <= COMP.y ? tempBALL.getCorner(Y, BR) - COMP.getCorner(Y, TR) : tempBALL.getCorner(Y, TR) - COMP.getCorner(Y, BR);
+	--availableTime;
+	getRequiredTime();
+	static bool override = false;
+	bool madeMove = false;
+	
+	Particle tempBALLCopy = tempBALL;
+
+	switch(decision){
+		case REACH_POSITION_BEFORE_BALL:
+			std :: cout  << decision;
+			std :: cout  << "\nbefore ball\n";
+			if(tempBALLCopy.collisionWith(COMP)){
+				tempBALLCopy.reboundFrom(COMP);
+				if(tempBALLCopy.vx > 0){
+					override = true;
+				}
+			}
+			
+			if (((!tempBALL.collisionWith(COMP)) && BALL.vx > 0 && direction != 0) || override){
+				move(direction);
+				madeMove = true;
+				if(override){
+					override = false;
+				}
+			}
+
+			break;
+
+		case REACH_BALL_IN_REQUIRED_TIME:
+		//std :: cout  << "reqd time\n";
+			if(tempBALL.collisionWith(COMP) && availableTime > requiredTime + 10){
+				if(direction == 0){
+					std::uniform_int_distribution<std::mt19937::result_type> dist2(0,1);
+					direction = dist2(rng) % 2 == 0 ? -1 : +1;
+				}
+				move(-direction);
+				madeMove = true;
+
+			}
+			else if ((!tempBALL.collisionWith(COMP) && availableTime <= requiredTime + 10) || override){
+				move(direction);
+				madeMove = true;
+				if(tempBALLCopy.collisionWith(COMP)){
+					tempBALLCopy.reboundFrom(COMP);
+					if(tempBALLCopy.vx > 0){
+						override = true;
+					}
+				}
+				if(tempBALLCopy.vx < 0 && override){
+					override = false;
+				}
+			}
+
+			break;
+
+		case CLOSE_MISS:
+			if(tempBALL.collisionWith(COMP) || availableTime > requiredTime - 1){
+				if(direction == 0){
+					std::uniform_int_distribution<std::mt19937::result_type> dist2(0,1);
+					direction = dist2(rng) % 2 == 0 ? -1 : +1;
+				}
+				move(direction);
+				madeMove = true;
+			}
+			else if(!tempBALL.collisionWith(COMP) && availableTime <= requiredTime - 1){
+				move(direction);
+				madeMove = true;
+			}
+
+			break;
+
+		case NORMAL_MISS:
+		//std :: cout  << "normal\n";
+			if(tempBALL.collisionWith(COMP)){
+				if(direction == 0){
+					std::uniform_int_distribution<std::mt19937::result_type> dist2(0,1);
+					direction = dist2(rng) % 2 == 0 ? -1 : +1;
+				}
+				move(-direction);
+				madeMove = true;
+			}
+			break;
+		case TERRIBLE_MISS:
+		//std :: cout  << "terrible\n";
+			move(-direction);
+			madeMove = true;
+			if(tempBALL.collisionWith(COMP)){
+				direction *= -1;
+			}
+			break;
+		default:
+			break;
+	}
+	if(!madeMove){
 		if(COMP.vy > 0){
 			COMP.vy -= COMP.ay;
 			if(COMP.vy < PLAYER_TWO_MIN_VEL_Y) COMP.vy = PLAYER_TWO_MIN_VEL_Y;
@@ -494,6 +621,7 @@ void AI :: move(){
 	}
 }
 
+//*******************************************************************************************//
 
 //GAME FUNCTIONS*****************************************************************************//
 

@@ -42,8 +42,7 @@ void runGame(){
 			PLAYERTWO.move();
 		}
 		else{
-			COMPUTER.getBallPosition();
-			COMPUTER.move();
+			COMPUTER.takeAction();
 		}
 		
 		
@@ -55,6 +54,8 @@ void runGame(){
 		
 		if(BALL.collisionWith(PLAYERONE)){
 			BALL.reboundFrom(PLAYERONE);
+			COMPUTER.getBallPosition();
+			COMPUTER.makeDecision();
 		}
 		else if(gameMode == VS_HUMAN && BALL.collisionWith(PLAYERTWO)){
 				BALL.reboundFrom(PLAYERTWO);
@@ -74,6 +75,10 @@ void runGame(){
 				COMPUTER.COMP.reset();
 			}
 			BALL.reset();
+			if(BALL.vx > 0){
+				COMPUTER.getBallPosition();
+				COMPUTER.makeDecision();
+			}
 		}
 		
 		renderAll();

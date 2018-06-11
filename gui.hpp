@@ -9,7 +9,8 @@
 #include <SDL2/SDL_ttf.h>
 #endif
 
-#include <string> 
+#include <string>
+#include <random>
 
 const unsigned SCREEN_WIDTH = 640;
 const unsigned SCREEN_HEIGHT = 480;
@@ -20,6 +21,9 @@ enum gameStates{
 	VS_HUMAN,
 	ON_MENU
 };
+
+//Random Number Generator
+std::mt19937 rng;
 
 int gameMode = ON_MENU; 
 
@@ -37,6 +41,7 @@ bool quit();
 
 
 void init(){
+	rng.seed(std::random_device()());
 	SDL_Init(SDL_INIT_VIDEO);
 	gWindow = SDL_CreateWindow("P O N G", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
