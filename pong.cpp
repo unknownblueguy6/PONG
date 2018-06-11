@@ -28,6 +28,10 @@ void runGame(){
 	newGame();
 
 	while(true){
+
+		if(victory()){
+			break;
+		}
 		
 		capTimer.start();
 		
@@ -84,5 +88,16 @@ void runGame(){
 		renderAll();
 
 		capTimer.capFPS();
+	}
+	if(!QUIT_GAME){
+		displayWinner();
+
+		if(playAgain()){
+			runGame();
+		}
+
+		else{
+			QUIT_GAME = true;
+		}
 	}
 }

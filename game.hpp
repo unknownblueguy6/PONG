@@ -1,7 +1,6 @@
 #pragma once
 #include "gui.hpp"
 #include "attributes.hpp"
-#include <iostream>
 #include <cmath>
 
 //*******************************************************************************************//
@@ -153,7 +152,7 @@ void Particle :: move(){
 	}
 
 
-	else if(whichPlayer() == 1){
+	else if(whichPlayer() == PLAYER_ONE){
 		if(keyStates[SDL_SCANCODE_W]){
 			vy -= ay;
 			if(std :: abs(vy) > PLAYER_ONE_MAX_VEL_Y) vy = -PLAYER_ONE_MAX_VEL_Y;
@@ -187,7 +186,7 @@ void Particle :: move(){
 	}
 
 
-	else if(whichPlayer() == 2){
+	else if(whichPlayer() == PLAYER_TWO){
 		if(keyStates[SDL_SCANCODE_UP]){
 			vy -= ay;
 			if(std :: abs(vy) > PLAYER_TWO_MAX_VEL_Y) vy = -PLAYER_TWO_MAX_VEL_Y;
@@ -345,11 +344,11 @@ void Particle :: reset(){
 		x = BALL_POS_X;
 		y = BALL_POS_Y;
 	}
-	else if (whichPlayer() == 1){
+	else if (whichPlayer() == PLAYER_ONE){
 		x = PLAYER_ONE_POS_X;
 		y = PLAYER_ONE_POS_Y;
 	}
-	else if (whichPlayer() == 2 || whichPlayer() == 3){
+	else if (whichPlayer() == PLAYER_TWO || whichPlayer() == PLAYER_COMPUTER){
 		x = PLAYER_TWO_POS_X;
 		y = PLAYER_TWO_POS_Y;
 	}
@@ -397,7 +396,7 @@ int Particle :: getCorner(bool choice1, int choice2){
 
 int Particle :: getNearestCorner(Particle player){
 	int c1, c2;
-	if(player.whichPlayer() == 1) c1 = TR, c2 = BR;
+	if(player.whichPlayer() == PLAYER_ONE) c1 = TR, c2 = BR;
 	else c1 = TL, c2 = BL;
 	
 	if (abs(abs(player.getCorner(Y, c1)) - abs(y)) <= abs(abs(player.getCorner(Y, c2)) - abs(y))) return c1; 
@@ -413,9 +412,9 @@ int Particle :: getCollisionPoint(bool choice, int x1, int y1, int coordinate){
 }
 
 int Particle :: whichPlayer(){
-	if(x == PLAYER_ONE_POS_X && h == PLAYER_ONE_HEIGHT && !isAI) return 1;
-	if(x == PLAYER_TWO_POS_X && h == PLAYER_TWO_HEIGHT && !isAI) return 2;
-	if(isAI) return 3;
+	if(x == PLAYER_ONE_POS_X && h == PLAYER_ONE_HEIGHT && !isAI) return PLAYER_ONE;
+	if(x == PLAYER_TWO_POS_X && h == PLAYER_TWO_HEIGHT && !isAI) return PLAYER_TWO;
+	if(isAI) return PLAYER_COMPUTER;
 	return -1;
 }
 
@@ -525,8 +524,6 @@ void AI :: takeAction(){
 
 	switch(decision){
 		case REACH_POSITION_BEFORE_BALL:
-			std :: cout  << decision;
-			std :: cout  << "\nbefore ball\n";
 			if(tempBALLCopy.collisionWith(COMP)){
 				tempBALLCopy.reboundFrom(COMP);
 				if(tempBALLCopy.vx > 0){
@@ -545,7 +542,6 @@ void AI :: takeAction(){
 			break;
 
 		case REACH_BALL_IN_REQUIRED_TIME:
-		//std :: cout  << "reqd time\n";
 			if(tempBALL.collisionWith(COMP) && availableTime > requiredTime + 10){
 				if(direction == 0){
 					std::uniform_int_distribution<std::mt19937::result_type> dist2(0,1);
@@ -588,7 +584,6 @@ void AI :: takeAction(){
 			break;
 
 		case NORMAL_MISS:
-		//std :: cout  << "normal\n";
 			if(tempBALL.collisionWith(COMP)){
 				if(direction == 0){
 					std::uniform_int_distribution<std::mt19937::result_type> dist2(0,1);
@@ -599,7 +594,6 @@ void AI :: takeAction(){
 			}
 			break;
 		case TERRIBLE_MISS:
-		//std :: cout  << "terrible\n";
 			move(-direction);
 			madeMove = true;
 			if(tempBALL.collisionWith(COMP)){
@@ -629,6 +623,8 @@ void newGame();
 void updateScore();
 void renderCenterLine();
 void renderAll();
+void displayWinner();
+bool victory();
 
 
 void newGame(){
@@ -642,7 +638,8 @@ void newGame(){
 	else{
 		COMPUTER.COMP.reset();
 		COMPUTER.COMP.score = 0;
-	}	
+	}
+	VICTORY = 0;	
 }
 
 void updateScore(){
@@ -690,6 +687,58 @@ void renderAll(){
 		renderText(scoreText, 100, SCREEN_WIDTH/2, 45);
 
 		SDL_RenderPresent(gRenderer);
+}
+
+void displayWinner(){
+	switch(VICTORY){
+		case PLAYER_ONE:
+			renderText("WINNER", 75, 150, 100);
+			break;
+		case PLAYER_TWO:
+		case PLAYER_COMPUTER:
+			renderText("WINNER", 75, SCREEN_WIDTH - 150, 100);
+	}
+	SDL_RenderPresent(gRenderer);
+	SDL_Delay(2500);
+}
+
+bool victory(){
+	if (PLAYERONE.score == 10){
+		VICTORY = PLAYER_ONE;
+		return true;
+	}
+	else if(PLAYERTWO.score == 10){
+		VICTORY = PLAYER_TWO;
+		return true;
+	}
+	else if(COMPUTER.COMP.score == 10){
+		VICTORY = PLAYER_COMPUTER;
+		return true;
+	}
+	return false;
+}
+
+bool playAgain(){
+	while(!quit()){
+		const Uint8* keyStates = SDL_GetKeyboardState(NULL);
+		clearScreen();
+		renderText("PLAY AGAIN?", 100, SCREEN_WIDTH/2 + 20, 125);
+		renderText("YES", 75, SCREEN_WIDTH/2 - 150, 300);
+		renderText("NO", 75, SCREEN_WIDTH/2 + 150, 300);
+		static int pos = 1;
+		int renderPos = SCREEN_WIDTH/2 - 150;
+	
+		if(keyStates[SDL_SCANCODE_RIGHT]) pos = 0;
+		if(keyStates[SDL_SCANCODE_LEFT]) pos = 1;
+		if(keyStates[SDL_SCANCODE_RETURN]) return pos;
+	
+		if (pos == 1) renderPos = SCREEN_WIDTH/2 - 150;
+		else renderPos = SCREEN_WIDTH/2 + 175;
+		
+		renderText(">", 100, renderPos - 75 , 300);
+	
+		SDL_RenderPresent(gRenderer);
+	}
 }
 
 //*******************************************************************************************//

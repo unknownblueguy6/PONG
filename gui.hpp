@@ -15,11 +15,19 @@
 const unsigned SCREEN_WIDTH = 640;
 const unsigned SCREEN_HEIGHT = 480;
 
+
 bool QUIT_GAME = false;
 enum gameStates{
 	VS_COMP = 1,
 	VS_HUMAN,
 	ON_MENU
+};
+
+int VICTORY = 0;
+enum players{
+	PLAYER_ONE = 1,
+	PLAYER_TWO,
+	PLAYER_COMPUTER
 };
 
 //Random Number Generator
