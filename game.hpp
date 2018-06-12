@@ -644,11 +644,8 @@ void newGame(){
 
 void updateScore(){
 	if(BALL.vx < 0){
-		if(gameMode == VS_HUMAN)
-			++PLAYERTWO.score;
-		else{
-			++COMPUTER.COMP.score;
-		}
+		if(gameMode == VS_HUMAN) ++PLAYERTWO.score;
+		else ++COMPUTER.COMP.score;
 	}
 	else if(BALL.vx > 0){
 		++PLAYERONE.score;
@@ -690,6 +687,7 @@ void renderAll(){
 }
 
 void displayWinner(){
+	renderAll();
 	switch(VICTORY){
 		case PLAYER_ONE:
 			renderText("WINNER", 75, 150, 100);
