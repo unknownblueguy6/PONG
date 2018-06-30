@@ -1,5 +1,4 @@
 #include "game.hpp"
-#include <iostream>
 
 void runGame();
 
@@ -87,9 +86,7 @@ void runGame(){
 		}
 		
 		renderAll();
-
-		std :: cout << COMPUTER.COMP.score << "\n";
-
+		
 		capTimer.capFPS();
 	}
 	if(!QUIT_GAME){
