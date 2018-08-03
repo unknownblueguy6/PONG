@@ -12,11 +12,11 @@ The basic SDL, as well as SDL True Type Font libraries have been used.
 MinGW(for Windows), gcc(for Linux)
 
 ## Windows
-Download the release [here](https://www.google.com) and run **pong.exe** .
+Download the release [here](https://github.com/unknownblueguy6/PONG/files/2256350/pong_mingw_win32.zip) and run **pong.exe** .
 
 
 ## Linux(Ubuntu)
-Download the release [here](https://www.google.com)
+Download the release here.
 
 1. Get the SDL libaries
 
@@ -29,7 +29,7 @@ Download the release [here](https://www.google.com)
 
 2. Run it
 
-	`$ ./pong'
+	`$ ./pong`
 
 
 
