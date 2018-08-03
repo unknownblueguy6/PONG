@@ -23,13 +23,19 @@ Download the release here.
 **Note** : Skip this step if you already have the SDL2 development/runtime libraries
 
 
-	`$ sudo apt-get libsdl2`
+```bash
+$ sudo apt-get libsdl2
+```
 
-	`$ sudo apt-get libsdl2_ttf`
+```bash
+$ sudo apt-get libsdl2_ttf
+```
 
 2. Run it
 
-	`$ ./pong`
+```bash
+$ ./pong
+```
 
 
 
