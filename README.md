@@ -37,5 +37,19 @@ $ sudo apt-get libsdl2_ttf
 $ ./pong
 ```
 
+# Instructions
+
+You can change all the attributes of the paddles and the ball in the config.txt file.
+
+There are two game modes : VS COMP and VS PLAYER
+
+### VS COMP
+W and S to move
+
+### VS PLAYER
+P1 : W and S 
+
+P2 : ↑ and ↓
+
 
 
