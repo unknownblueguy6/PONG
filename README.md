@@ -9,30 +9,27 @@ The basic SDL, as well as SDL True Type Font libraries have been used.
 # Installation
 
 ## Prerequisites
-g++
+MinGW(for Windows), gcc(for Linux)
 
-```## Windows
-Download the release [here](https://www.google.com)
+## Windows
+Download the release [here](https://www.google.com) and run **pong.exe** .
 
 
 ## Linux(Ubuntu)
 Download the release [here](https://www.google.com)
 
-
-1. Get the SDL2 runtime libraries
+1. Get the SDL libaries
 
 **Note** : Skip this step if you already have the SDL2 development/runtime libraries
+
 
 	`$ sudo apt-get libsdl2`
 
 	`$ sudo apt-get libsdl2_ttf`
 
-2. Build the repo
+2. Run it
 
-	`$ make`
+	`$ ./pong'
 
-3. Run it
-
-	`$ ./pong`
 
 
