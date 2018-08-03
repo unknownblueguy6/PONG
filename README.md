@@ -11,16 +11,9 @@ The basic SDL, as well as SDL True Type Font libraries have been used.
 ## Prerequisites
 g++
 
-## Windows
+```## Windows
 Download the release [here](https://www.google.com)
 
-1. Build the repo
-
-	`$ mingw32-make.exe`
-
-2. Run it
-	
-	`$ pong`
 
 ## Linux(Ubuntu)
 Download the release [here](https://www.google.com)
