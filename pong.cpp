@@ -1,3 +1,4 @@
+//This file just executes all the functions of game.hpp and gui.hpp
 #include "game.hpp"
 
 void runGame();
@@ -32,30 +33,30 @@ void runGame(){
 		if(victory()){
 			break;
 		}
-		
+
 		capTimer.start();
-		
+
 		if(quit()){
 			QUIT_GAME = true;
 			break;
 		}
 
 		PLAYERONE.move();
-		
+
 		if(gameMode == VS_HUMAN){
 			PLAYERTWO.move();
 		}
 		else{
 			COMPUTER.takeAction();
 		}
-		
-		
+
+
 		BALL.move();
 
 		if(BALL.collisionWithWall()){
 			BALL.reboundFromWall();
 		}
-		
+
 		if(BALL.collisionWith(PLAYERONE)){
 			BALL.reboundFrom(PLAYERONE);
 			COMPUTER.getBallPosition();
@@ -84,9 +85,9 @@ void runGame(){
 				COMPUTER.makeDecision();
 			}
 		}
-		
+
 		renderAll();
-		
+
 		capTimer.capFPS();
 	}
 	if(!QUIT_GAME){

@@ -3,8 +3,8 @@
 #include "attributes.hpp"
 #include <cmath>
 
-//*******************************************************************************************//
-class FPS_Timer
+//****************************************************************************//
+class FPS_Timer //required to maintain a stable number of frames rendered per second
 {
 	public:
 		//Initializes variables
@@ -51,10 +51,10 @@ Uint32 FPS_Timer::getTicks()
 	return time;
 }
 
-//*******************************************************************************************//
+//****************************************************************************//
 
 
-//*******************************************************************************************//
+//****************************************************************************//
 enum axes
 {
 	X,
@@ -71,7 +71,7 @@ enum corners{
 class Particle
 {
 	public:
-	//Member functions	
+	//Member functions
 		Particle();
 		void move();
 		void renderToScreen();
@@ -83,7 +83,7 @@ class Particle
 		bool collisionWith(Particle);
 		bool collisionWithWall();
 		bool outOfBounds();
-		
+
 		int getCorner(bool, int);
 		int getNearestCorner(Particle);
 		double slopeDiff(int, int);
@@ -91,12 +91,12 @@ class Particle
 		int whichPlayer();
 
 		//Data members
-		static int count; 	
+		static int count;
 		int score = 0;
 		int vx; //velocity along x-axis
 		int vy; //velocity along y-axis
-		int ay; //acceleration along y - axis 
-		int x; //x coordinate of centre 
+		int ay; //acceleration along y - axis
+		int x; //x coordinate of centre
 		int y; //y coordinates of centre
 		int w; //width of particle
 		int h; //height of particle
@@ -116,7 +116,7 @@ Particle :: Particle(){
 		vy = 0;
 		ay = PLAYER_ONE_ACC_Y;
 		x = PLAYER_ONE_POS_X;
-		y = PLAYER_ONE_POS_Y; 
+		y = PLAYER_ONE_POS_Y;
 		w = PLAYER_ONE_WIDTH;
 		h = PLAYER_ONE_HEIGHT;
 		++count;
@@ -126,7 +126,7 @@ Particle :: Particle(){
 		vy = 0;
 		ay = PLAYER_TWO_ACC_Y;
 		x = PLAYER_TWO_POS_X;
-		y = PLAYER_TWO_POS_Y; 
+		y = PLAYER_TWO_POS_Y;
 		w = PLAYER_TWO_WIDTH;
 		h = PLAYER_TWO_HEIGHT;
 		if(count == 3) isAI = 1;
@@ -136,16 +136,16 @@ Particle :: Particle(){
 		vx = BALL_VEL_X;
 		vy = BALL_VEL_Y;
 		x = BALL_POS_X;
-		y = BALL_POS_Y; 
+		y = BALL_POS_Y;
 		w = BALL_WIDTH;
 		h = BALL_HEIGHT;
 		++count;
 	}
 }
 
-void Particle :: move(){
+void Particle :: move(){ //Moves around the ball or the player, depending on caller
 	const Uint8* keyStates = SDL_GetKeyboardState(NULL);
-	
+
 		if(whichPlayer() == -1){
 		x += vx;
 		y += vy;
@@ -177,7 +177,7 @@ void Particle :: move(){
 			if (vy > 0){
 				vy -= ay;
 				if(vy < PLAYER_ONE_MIN_VEL_Y) vy = PLAYER_ONE_MIN_VEL_Y;
-			}	
+			}
 			else{
 				vy += ay;
 				if(vy > PLAYER_ONE_MIN_VEL_Y) vy = PLAYER_ONE_MIN_VEL_Y;
@@ -211,7 +211,7 @@ void Particle :: move(){
 			if (vy > 0){
 				vy -= ay;
 				if(vy < PLAYER_TWO_MIN_VEL_Y) vy = PLAYER_TWO_MIN_VEL_Y;
-			}	
+			}
 			else{
 				vy += ay;
 				if(vy > PLAYER_TWO_MIN_VEL_Y) vy = PLAYER_TWO_MIN_VEL_Y;
@@ -223,12 +223,16 @@ void Particle :: move(){
 void Particle :: changeVel(int vel, int dir){
 	//dir = 1 does not change direction, dir = -1 changes direction
 	int initialDir = std :: abs(vy)/vy;
-	if (std :: abs(vel) > abs(BALL_MAX_VEL_Y)) vy = dir * initialDir * abs(BALL_MAX_VEL_Y);
-	else if (std :: abs(vel) < abs(BALL_MIN_VEL_Y)) vy = dir * initialDir * abs(BALL_MIN_VEL_Y);
+	if (std :: abs(vel) > abs(BALL_MAX_VEL_Y)){
+		vy = dir * initialDir * abs(BALL_MAX_VEL_Y);
+	}
+	else if (std :: abs(vel) < abs(BALL_MIN_VEL_Y)){
+		vy = dir * initialDir * abs(BALL_MIN_VEL_Y);
+	}
 	else vy = dir * initialDir * std::abs(vel);
 }
 
-void Particle :: renderToScreen(){
+void Particle :: renderToScreen(){ //renders an SDL_rect struct to the screen
 	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 	SDL_Rect particleRect = {getCorner(X, TL), getCorner(Y, TL), w, h};
 	SDL_RenderFillRect( gRenderer,&particleRect);
@@ -256,61 +260,61 @@ void Particle :: reboundFrom(Particle player){
 	int y1 = player.getCorner(Y, corner);
 	x1 += (corner == TR || corner == BR) ? w/2 : -w/2;
 	y1 += (corner == BL || corner == BR) ? h/2 : -h/2;
-	
-	if(collisionWith(player)){ 
+
+	if(collisionWith(player)){
 		x = getCollisionPoint(X, x, y, y1);
 		y = y1;
-		
+
 		if(!collisionWith(player)){
 			y = getCollisionPoint(Y, x, y, x1);
 			x = x1;
 		}
-		
-		if((corner == BR || corner == BL && vy < 0) || 
+
+		if((corner == BR || corner == BL && vy < 0) ||
 			(corner == TR || corner == TL && vy > 0)) changeVel(vy - player.vy, -1);
-		
+
 		else changeVel(vy - player.vy, 1);
-		
-		if(((corner == BR || corner == TR) && vx < 0 && getCorner(X, TL) >= player.x) ||
-			((corner == BL || corner == TL) && vx > 0 && getCorner(X, TR) <= player.x))
+
+		if(((corner == BR || corner == TR) && vx < 0 && getCorner(X, TL) >= player.x)
+			 || ((corner == BL || corner == TL) && vx > 0 && getCorner(X, TR) <= player.x))
 			vx *= -1;
 	}
 
 	else{
 		if(((corner == TL || corner == TR) && y < y1) ||
 			((corner == BL || corner == BR) && y > y1)){
-			
-			double slopeChange = slopeDiff(x1, y1); 
-			if(corner == TL || corner == BR) slopeChange *= -1; 
+
+			double slopeChange = slopeDiff(x1, y1);
+			if(corner == TL || corner == BR) slopeChange *= -1;
 
 			if (slopeChange < 0){
 				y = getCollisionPoint(Y, x, y, x1);
 				x = x1;
 				changeVel(vy - player.vy, 1);
 				vx *= -1;
-			} 
+			}
 			else if (slopeChange > 0){
 				x = getCollisionPoint(X, x, y, y1);
 				y = y1;
 				changeVel(vy - player.vy, -1);
-				if ((vx < 0 && getCorner(X, TL) >= player.x) || 
-					(vx > 0 && getCorner(X, TR) <= player.x)) vx *= -1;	
+				if ((vx < 0 && getCorner(X, TL) >= player.x) ||
+					(vx > 0 && getCorner(X, TR) <= player.x)) vx *= -1;
 			}
 			else{
 				x = x1, y = y1;
 				vy = 20 * -(std :: abs(vy)/vy);
 				vx = 10 * -(std :: abs(vx)/vx);
-			} 
+			}
 		}
-			
+
 		else{
 			y = getCollisionPoint(Y, x, y, x1);
 			x = x1;
 			changeVel(vy - player.vy, 1);
-			vx *= -1;	
+			vx *= -1;
 		}
 	}
-	
+
 	if(collisionWithWall()){
 		if(y - h/2 < 0){
 			y = h/2;
@@ -329,10 +333,10 @@ void Particle :: reboundFrom(Particle player){
 	}
 }
 
-void Particle :: reset(){
+void Particle :: reset(){ //resets the game after ball goes out of bounds
 	if (whichPlayer() == -1){
 		if(vx < 0){
-			vx = BALL_VEL_X;	
+			vx = BALL_VEL_X;
 		}
 		else if(vx > 0){
 			vx = -BALL_VEL_X;
@@ -354,12 +358,12 @@ void Particle :: reset(){
 	}
 }
 
-bool Particle :: collisionWith(Particle player){
-	return ((x >= player.getCorner(X, TL) - w/2 && x <= player.getCorner(X, BR) + w/2) &&
-			(y >= player.getCorner(Y, TL) - h/2 && y <= player.getCorner(Y, BR) + h/2));
+bool Particle :: collisionWith(Particle player){ //collsion detection with player
+	return ((x >= player.getCorner(X, TL) - w/2 && x <= player.getCorner(X, BR) + w/2)
+			 && (y >= player.getCorner(Y, TL) - h/2 && y <= player.getCorner(Y, BR) + h/2));
 }
 
-bool Particle :: collisionWithWall(){
+bool Particle :: collisionWithWall(){ //collsion detection with wall
 	return (y - h/2 <= 0 || y  + h/2 >= (int)(SCREEN_HEIGHT));
 }
 
@@ -368,9 +372,10 @@ bool Particle :: outOfBounds(){
 }
 
 double Particle :: slopeDiff(int x1, int y1){
+//calculate the difference in the slope line along velocity and slope of line between centre and a given point
 	float m1 = (float)((float)(y - y1)/(float)(x - x1));
 	float m2 = (float)((float)(vy)/(float)(vx));
-	return m1 - m2; 
+	return m1 - m2;
 }
 
 int Particle :: getCorner(bool choice1, int choice2){
@@ -398,16 +403,16 @@ int Particle :: getNearestCorner(Particle player){
 	int c1, c2;
 	if(player.whichPlayer() == PLAYER_ONE) c1 = TR, c2 = BR;
 	else c1 = TL, c2 = BL;
-	
-	if (abs(abs(player.getCorner(Y, c1)) - abs(y)) <= abs(abs(player.getCorner(Y, c2)) - abs(y))) return c1; 
-	return c2; 
+
+	if (abs(abs(player.getCorner(Y, c1)) - abs(y)) <= abs(abs(player.getCorner(Y, c2)) - abs(y))) return c1;
+	return c2;
 }
 
 int Particle :: getCollisionPoint(bool choice, int x1, int y1, int coordinate){
 	float m = (float)((float)(vy)/(float)(vx));
-	
+
 	if(choice == X) return x1 + (coordinate-y1)/m;
-	
+
 	else return y1 + m*(coordinate - x1);
 }
 
@@ -418,21 +423,22 @@ int Particle :: whichPlayer(){
 	return -1;
 }
 
-//*******************************************************************************************//
+//****************************************************************************//
 
 // AI code //
-
+//Not really an AI, just a Random Number Generator which decides whether to hit the ball
 enum decisions{
-	REACH_POSITION_BEFORE_BALL = 1,
-	REACH_BALL_IN_REQUIRED_TIME,
-	CLOSE_MISS,
-	NORMAL_MISS,
-	TERRIBLE_MISS
+	REACH_POSITION_BEFORE_BALL = 1, //24% chance
+	REACH_BALL_IN_REQUIRED_TIME, //56% chance
+	CLOSE_MISS, //12% chance
+	NORMAL_MISS,//1% chance
+	TERRIBLE_MISS//1% chance
 };
 
 class AI
 {
 	public:
+		//Member functions
 		void getBallPosition();
 		void makeDecision();
 		void getRequiredTime();
@@ -505,9 +511,9 @@ void AI :: move(int dir){
 void AI :: getRequiredTime(){
 	double root1 = (double)(((double)(-COMP.vy) + std :: pow((COMP.vy * COMP.vy + 2 * direction * COMP.ay * distance), 0.5)) / COMP.ay);
 	double root2 = (double)(((double)(-COMP.vy) - std :: pow((COMP.vy * COMP.vy + 2 * direction * COMP.ay * distance), 0.5)) / COMP.ay);
-	
+
 	if(root1 >= 0 && root2 >= 0) requiredTime = root1 > root2 ? root2 : root1;
-	
+
 	else if(root1 < 0 && root2 >= 0) requiredTime = root2;
 
 	else if(root1 >= 0 && root2 < 0) requiredTime = root1;
@@ -519,7 +525,7 @@ void AI :: takeAction(){
 	getRequiredTime();
 	static bool override = false;
 	bool madeMove = false;
-	
+
 	Particle tempBALLCopy = tempBALL;
 
 	switch(decision){
@@ -530,7 +536,7 @@ void AI :: takeAction(){
 					override = true;
 				}
 			}
-			
+
 			if (((!tempBALL.collisionWith(COMP)) && BALL.vx > 0 && direction != 0) || override){
 				move(direction);
 				madeMove = true;
@@ -607,7 +613,7 @@ void AI :: takeAction(){
 		if(COMP.vy > 0){
 			COMP.vy -= COMP.ay;
 			if(COMP.vy < PLAYER_TWO_MIN_VEL_Y) COMP.vy = PLAYER_TWO_MIN_VEL_Y;
-		}	
+		}
 		else{
 			COMP.vy += COMP.ay;
 			if(COMP.vy > PLAYER_TWO_MIN_VEL_Y) COMP.vy = PLAYER_TWO_MIN_VEL_Y;
@@ -615,9 +621,9 @@ void AI :: takeAction(){
 	}
 }
 
-//*******************************************************************************************//
+//****************************************************************************//
 
-//GAME FUNCTIONS*****************************************************************************//
+//GAME FUNCTIONS**************************************************************//
 
 void newGame();
 void updateScore();
@@ -639,7 +645,7 @@ void newGame(){
 		COMPUTER.COMP.reset();
 		COMPUTER.COMP.score = 0;
 	}
-	VICTORY = 0;	
+	VICTORY = 0;
 }
 
 void updateScore(){
@@ -657,17 +663,17 @@ void renderCenterLine(){
 	SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 	for(int ypos = 0; ypos < SCREEN_HEIGHT; ypos += 18){
 		SDL_Rect particleRect = {SCREEN_WIDTH/2 - 3, ypos, 6, 12};
-		SDL_RenderFillRect( gRenderer,&particleRect);	
+		SDL_RenderFillRect( gRenderer,&particleRect);
 	}
-	
+
 }
 
 void renderAll(){
 		clearScreen();
 		std::string scoreText;
-		
+
 		PLAYERONE.renderToScreen();
-		
+
 		if(gameMode == VS_HUMAN){
 			PLAYERTWO.renderToScreen();
 			scoreText  = std::to_string(PLAYERONE.score) + " " + std::to_string(PLAYERTWO.score);
@@ -676,7 +682,7 @@ void renderAll(){
 			COMPUTER.COMP.renderToScreen();
 			scoreText  = std::to_string(PLAYERONE.score) + " " + std::to_string(COMPUTER.COMP.score);
 		}
-		
+
 		BALL.renderToScreen();
 
 		renderCenterLine();
@@ -725,18 +731,18 @@ bool playAgain(){
 		renderText("NO", 75, SCREEN_WIDTH/2 + 150, 300);
 		static int pos = 1;
 		int renderPos = SCREEN_WIDTH/2 - 150;
-	
+
 		if(keyStates[SDL_SCANCODE_RIGHT]) pos = 0;
 		if(keyStates[SDL_SCANCODE_LEFT]) pos = 1;
 		if(keyStates[SDL_SCANCODE_RETURN]) return pos;
-	
+
 		if (pos == 1) renderPos = SCREEN_WIDTH/2 - 150;
 		else renderPos = SCREEN_WIDTH/2 + 175;
-		
+
 		renderText(">", 100, renderPos - 75 , 300);
-	
+
 		SDL_RenderPresent(gRenderer);
 	}
 }
 
-//*******************************************************************************************//
+//****************************************************************************//

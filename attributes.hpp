@@ -3,7 +3,7 @@
 #include<fstream>
 #include<string>
 
-
+//All attributes of ball, player 1 and player 2
 int arr[23];
 
 int SCREEN_FPS;
@@ -30,10 +30,11 @@ int BALL_MIN_VEL_Y;
 int BALL_VEL_X;
 int BALL_VEL_Y;
 int BALL_WIDTH;
-int BALL_HEIGHT; 
+int BALL_HEIGHT;
 int BALL_POS_X;
 int BALL_POS_Y;
 
+//Reads the values from the config file
 void readValues(){
 	std :: ifstream attributes ("config.txt");
 	std :: string line;
@@ -71,7 +72,7 @@ void readValues(){
 	BALL_VEL_X = arr[17];
 	BALL_VEL_Y = arr[18];
 	BALL_WIDTH = arr[19];
-	BALL_HEIGHT = arr[20]; 
+	BALL_HEIGHT = arr[20];
 	BALL_POS_X = arr[21];
 	BALL_POS_Y = arr[22];
 }
