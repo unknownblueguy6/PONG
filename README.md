@@ -18,21 +18,26 @@ Download the release [here](https://github.com/unknownblueguy6/PONG/files/225635
 ## Linux(Ubuntu)
 Download the release here.
 
-1. Get the SDL libaries
+1. Get the SDL developement libaries
 
 **Note** : Skip this step if you already have the SDL2 development/runtime libraries
 
 
 ```bash
-$ sudo apt-get libsdl2
+$ sudo apt install libsdl2-dev
 ```
 
 ```bash
-$ sudo apt-get libsdl2_ttf
+$ sudo apt install libsdl2-ttf-dev
 ```
 
-2. Run it
+2. Build it using any C++11 supporting compiler
 
+```bash
+$ g++ pong.cpp -std=c++11 -lSDL2 -lSDL2_ttf -o pong 
+```
+
+3. Run it
 ```bash
 $ ./pong
 ```
